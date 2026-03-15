@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.env
+.env.*
+*.env
+
+# Claude Code project settings (per-developer)
+.claude/settings.json
+
+# Cache
+.cache/
+
+# OS
+.DS_Store
+Thumbs.db
