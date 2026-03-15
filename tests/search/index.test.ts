@@ -94,6 +94,24 @@ describe("searchContentType", () => {
     expect(results).toHaveLength(0);
   });
 
+  it("strips internal fields from results", async () => {
+    const spellsWithInternal = {
+      spell: [{ name: "Fireball", source: "PHB", _internalField: "hidden" }],
+    };
+    mockFetchRaw.mockResolvedValueOnce(spellsWithInternal).mockResolvedValueOnce({ spell: [] });
+    const results = await searchContentType("spells", "fire", "2024");
+    expect(results[0]).not.toHaveProperty("_internalField");
+  });
+
+  it("resolves tags in results", async () => {
+    const spellsWithTags = {
+      spell: [{ name: "Fireball", source: "PHB", entries: ["{@b bold text}"] }],
+    };
+    mockFetchRaw.mockResolvedValueOnce(spellsWithTags).mockResolvedValueOnce({ spell: [] });
+    const results = await searchContentType("spells", "fire", "2024");
+    expect((results[0].entries as string[])[0]).toBe("**bold text**");
+  });
+
   it("fetches each file in the content type exactly once", async () => {
     mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS).mockResolvedValueOnce(XGE_SPELLS);
     await searchContentType("spells", "", "2024");

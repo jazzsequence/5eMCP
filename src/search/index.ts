@@ -1,6 +1,8 @@
 import { getManifest } from "../manifest/refresh.js";
 import { fetchRaw } from "../github.js";
 import { CONTENT_KEY_MAP } from "../translation/handlers/types.js";
+import { stripInternalFields } from "../translation/strip.js";
+import { resolveTagsDeep } from "../translation/tags.js";
 import type { Ruleset } from "../types.js";
 
 /**
@@ -34,7 +36,8 @@ export async function searchContentType(
       if (results.length >= limit) break;
       const name = typeof entry.name === "string" ? entry.name : "";
       if (!lowerQuery || name.toLowerCase().includes(lowerQuery)) {
-        results.push(entry);
+        const translated = resolveTagsDeep(stripInternalFields(entry)) as Record<string, unknown>;
+        results.push(translated);
       }
     }
   }
