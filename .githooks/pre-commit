@@ -1,0 +1,56 @@
+#!/bin/bash
+# Pre-commit enforcement for 5etools-mcp
+
+set -e
+
+echo "Pre-Commit Validation"
+echo "=============================="
+echo ""
+
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m'
+
+# Check 1: Reviewer agent approval
+echo "1. Checking reviewer agent approval..."
+
+if [ "$USER_COMMIT" = "1" ]; then
+    echo -e "${YELLOW}  User commit bypass enabled — skipping reviewer check${NC}"
+elif [ -f .git/hooks/reviewer-approved ]; then
+    APPROVAL_TIME=$(cat .git/hooks/reviewer-approved)
+    CURRENT_TIME=$(date +%s)
+    TIME_DIFF=$((CURRENT_TIME - APPROVAL_TIME))
+
+    if [ $TIME_DIFF -lt 300 ]; then
+        echo -e "${GREEN}  Reviewer approved (${TIME_DIFF}s ago)${NC}"
+        rm .git/hooks/reviewer-approved
+    else
+        echo -e "${RED}  BLOCKED: Reviewer approval expired (${TIME_DIFF}s old)${NC}"
+        echo "  Spawn reviewer agent again and get fresh approval"
+        echo "  OR use: USER_COMMIT=1 git commit (for your own changes)"
+        exit 1
+    fi
+else
+    echo -e "${RED}  BLOCKED: No reviewer agent approval found${NC}"
+    echo "  For AI-generated changes: Spawn reviewer agent and get APPROVE"
+    echo "  For your own changes: Use USER_COMMIT=1 git commit -m \"message\""
+    exit 1
+fi
+echo ""
+
+# Check 2: No secrets
+echo "2. Checking for secrets..."
+for file in $(git diff --cached --name-only); do
+    if [[ "$file" == ".env" ]] || [[ "$file" == *".env."* ]] || [[ "$file" == *"credentials"* ]]; then
+        echo -e "${RED}  BLOCKED: Attempting to commit secrets: $file${NC}"
+        exit 1
+    fi
+done
+echo -e "${GREEN}  No secrets${NC}"
+echo ""
+
+echo "=============================="
+echo -e "${GREEN}  COMMIT ALLOWED${NC}"
+echo ""
+exit 0

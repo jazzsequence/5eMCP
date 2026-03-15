@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(gh api:*)",
+      "Bash(npm install:*)",
+      "Bash(npm test:*)",
+      "Bash(chmod +x:*)",
+      "Bash(npm run:*)",
+      "Bash(git:*)"
+    ]
+  }
+}
