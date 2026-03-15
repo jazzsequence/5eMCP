@@ -31,6 +31,13 @@ const CONTENT_TOOLS: ContentToolConfig[] = [
   { noun: "optfeature", folder: "optionalfeatures", description: "D&D 5e optional class feature or invocation" },
   { noun: "table", folder: "tables", description: "D&D 5e random table" },
   { noun: "variantrule", folder: "variantrules", description: "D&D 5e variant rule" },
+  { noun: "race", folder: "races", description: "D&D 5e playable species or race", hasGet: true },
+  { noun: "background", folder: "backgrounds", description: "D&D 5e character background", hasGet: true },
+  { noun: "feat", folder: "feats", description: "D&D 5e feat", hasGet: true },
+  { noun: "deity", folder: "deities", description: "D&D 5e deity or god" },
+  { noun: "language", folder: "languages", description: "D&D 5e language" },
+  { noun: "skill", folder: "skills", description: "D&D 5e skill" },
+  { noun: "sense", folder: "senses", description: "D&D 5e sense (e.g. darkvision, tremorsense)" },
 ];
 
 export function registerTypedTools(server: McpServer): void {

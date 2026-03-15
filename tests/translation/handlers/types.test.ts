@@ -58,6 +58,34 @@ describe("CONTENT_KEY_MAP", () => {
   it("maps variantrules to variantrule", () => {
     expect(CONTENT_KEY_MAP["variantrules"]).toBe("variantrule");
   });
+
+  it("maps races to race", () => {
+    expect(CONTENT_KEY_MAP["races"]).toBe("race");
+  });
+
+  it("maps backgrounds to background", () => {
+    expect(CONTENT_KEY_MAP["backgrounds"]).toBe("background");
+  });
+
+  it("maps feats to feat", () => {
+    expect(CONTENT_KEY_MAP["feats"]).toBe("feat");
+  });
+
+  it("maps deities to deity", () => {
+    expect(CONTENT_KEY_MAP["deities"]).toBe("deity");
+  });
+
+  it("maps languages to language", () => {
+    expect(CONTENT_KEY_MAP["languages"]).toBe("language");
+  });
+
+  it("maps skills to skill", () => {
+    expect(CONTENT_KEY_MAP["skills"]).toBe("skill");
+  });
+
+  it("maps senses to sense", () => {
+    expect(CONTENT_KEY_MAP["senses"]).toBe("sense");
+  });
 });
 
 describe("FLUFF_KEY_MAP", () => {
@@ -83,6 +111,14 @@ describe("FLUFF_KEY_MAP", () => {
 
   it("maps object to objectFluff", () => {
     expect(FLUFF_KEY_MAP["object"]).toBe("objectFluff");
+  });
+
+  it("maps race to raceFluff", () => {
+    expect(FLUFF_KEY_MAP["race"]).toBe("raceFluff");
+  });
+
+  it("maps background to backgroundFluff", () => {
+    expect(FLUFF_KEY_MAP["background"]).toBe("backgroundFluff");
   });
 });
 

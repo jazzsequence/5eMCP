@@ -54,6 +54,34 @@ describe("handler registry", () => {
     expect(registeredHandlers()).toContain("variantrules");
   });
 
+  it("has races handler registered", () => {
+    expect(registeredHandlers()).toContain("races");
+  });
+
+  it("has backgrounds handler registered", () => {
+    expect(registeredHandlers()).toContain("backgrounds");
+  });
+
+  it("has feats handler registered", () => {
+    expect(registeredHandlers()).toContain("feats");
+  });
+
+  it("has deities handler registered", () => {
+    expect(registeredHandlers()).toContain("deities");
+  });
+
+  it("has languages handler registered", () => {
+    expect(registeredHandlers()).toContain("languages");
+  });
+
+  it("has skills handler registered", () => {
+    expect(registeredHandlers()).toContain("skills");
+  });
+
+  it("has senses handler registered", () => {
+    expect(registeredHandlers()).toContain("senses");
+  });
+
   it("hasTypedHandler returns true for spells", () => {
     expect(hasTypedHandler("spells")).toBe(true);
   });

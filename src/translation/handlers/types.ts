@@ -16,6 +16,13 @@ export const CONTENT_KEY_MAP: Record<string, string> = {
   optionalfeatures: "optfeature",
   tables: "table",
   variantrules: "variantrule",
+  races: "race",
+  backgrounds: "background",
+  feats: "feat",
+  deities: "deity",
+  languages: "language",
+  skills: "skill",
+  senses: "sense",
 };
 
 /**
@@ -29,6 +36,8 @@ export const FLUFF_KEY_MAP: Record<string, string> = {
   condition: "conditionFluff",
   vehicle: "vehicleFluff",
   object: "objectFluff",
+  race: "raceFluff",
+  background: "backgroundFluff",
 };
 
 /** Returns the JSON array key for a given 5etools folder name, or undefined. */

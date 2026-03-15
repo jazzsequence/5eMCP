@@ -124,6 +124,54 @@ describe("registerTypedTools", () => {
     expect(tools["variantrule_search"]).toBeDefined();
   });
 
+  it("registers race_search tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["race_search"]).toBeDefined();
+  });
+
+  it("registers race_get tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["race_get"]).toBeDefined();
+  });
+
+  it("registers background_search tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["background_search"]).toBeDefined();
+  });
+
+  it("registers feat_search tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["feat_search"]).toBeDefined();
+  });
+
+  it("registers deity_search tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["deity_search"]).toBeDefined();
+  });
+
+  it("registers language_search tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["language_search"]).toBeDefined();
+  });
+
+  it("registers skill_search tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["skill_search"]).toBeDefined();
+  });
+
+  it("registers sense_search tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["sense_search"]).toBeDefined();
+  });
+
   it("spell_search calls searchContentType with correct args", async () => {
     const { server, tools } = makeServer();
     registerTypedTools(server);
