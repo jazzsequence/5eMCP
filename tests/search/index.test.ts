@@ -29,6 +29,9 @@ const FAKE_MANIFEST = {
       { name: "spells-phb.json", path: "spells/spells-phb.json", url: "https://raw.example.com/spells-phb.json", sha: "abc123" },
       { name: "spells-xge.json", path: "spells/spells-xge.json", url: "https://raw.example.com/spells-xge.json", sha: "def456" },
     ],
+    deities: [
+      { name: "deities.json", path: "deities.json", url: "https://raw.example.com/deities.json", sha: "deity1" },
+    ],
   },
   homebrew: {},
 };
@@ -49,7 +52,7 @@ const XGE_SPELLS = {
 };
 
 beforeEach(() => {
-  vi.clearAllMocks();
+  vi.resetAllMocks();
   mockGetManifest.mockResolvedValue(FAKE_MANIFEST as never);
 });
 
@@ -92,6 +95,27 @@ describe("searchContentType", () => {
     mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS).mockResolvedValueOnce(XGE_SPELLS);
     const results = await searchContentType("spells", "xyzzy", "2024");
     expect(results).toHaveLength(0);
+  });
+
+  it("matches on source field", async () => {
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS).mockResolvedValueOnce(XGE_SPELLS);
+    const results = await searchContentType("spells", "XGE", "2024");
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Firestorm");
+    expect(names).toContain("Ice Storm");
+    expect(names).not.toContain("Fireball");
+  });
+
+  it("matches on pantheon field", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      deity: [
+        { name: "Avandra", source: "EGW", pantheon: "Exandria" },
+        { name: "Pelor", source: "PHB", pantheon: "Forgotten Realms" },
+      ],
+    });
+    const results = await searchContentType("deities", "exandria", "2024");
+    expect(results.map((r) => r.name)).toContain("Avandra");
+    expect(results.map((r) => r.name)).not.toContain("Pelor");
   });
 
   it("strips internal fields from results", async () => {
