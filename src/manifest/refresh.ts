@@ -1,5 +1,5 @@
 import { buildManifest } from "./builder.js";
-import { cacheGet, cacheSet, cacheGetWithTTL } from "../cache/index.js";
+import { cacheSet, cacheGetWithTTL } from "../cache/index.js";
 import { manifestKey } from "../cache/keys.js";
 import type { Manifest } from "./schema.js";
 import type { Ruleset } from "../types.js";
