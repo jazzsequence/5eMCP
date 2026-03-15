@@ -1,6 +1,8 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { registerMetaTools } from "./tools/meta.js";
 import { registerPassthroughTools } from "./tools/passthrough.js";
+import { registerTypedTools } from "./tools/typed.js";
+import { registerOmnisearchTool } from "./tools/omnisearch.js";
 
 export function createServer(): McpServer {
   const server = new McpServer({
@@ -10,6 +12,8 @@ export function createServer(): McpServer {
 
   registerMetaTools(server);
   registerPassthroughTools(server);
+  registerTypedTools(server);
+  registerOmnisearchTool(server);
 
   return server;
 }
