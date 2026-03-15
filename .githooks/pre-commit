@@ -17,14 +17,14 @@ echo "1. Checking reviewer agent approval..."
 
 if [ "$USER_COMMIT" = "1" ]; then
     echo -e "${YELLOW}  User commit bypass enabled — skipping reviewer check${NC}"
-elif [ -f .git/hooks/reviewer-approved ]; then
-    APPROVAL_TIME=$(cat .git/hooks/reviewer-approved)
+elif [ -f .reviewer-approved ]; then
+    APPROVAL_TIME=$(cat .reviewer-approved)
     CURRENT_TIME=$(date +%s)
     TIME_DIFF=$((CURRENT_TIME - APPROVAL_TIME))
 
     if [ $TIME_DIFF -lt 300 ]; then
         echo -e "${GREEN}  Reviewer approved (${TIME_DIFF}s ago)${NC}"
-        rm .git/hooks/reviewer-approved
+        rm .reviewer-approved
     else
         echo -e "${RED}  BLOCKED: Reviewer approval expired (${TIME_DIFF}s old)${NC}"
         echo "  Spawn reviewer agent again and get fresh approval"

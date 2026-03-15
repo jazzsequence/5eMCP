@@ -77,16 +77,15 @@ If REJECT: List violations and required fixes. Do NOT create approval flag.
 If APPROVE:
 1. Confirm all rules followed
 2. Say "✅ APPROVED" prominently
-3. Main agent will create approval flag: Write tool to .git/hooks/reviewer-approved
+3. Main agent will create approval flag: Write tool to .reviewer-approved (project root)
 ```
 
-After reviewer approves, main agent writes the approval flag:
+After reviewer approves, main agent writes the approval flag using the **Write tool**
+(not Bash — `Write(*)` auto-approves root-level files, Bash redirects do not):
 
-```bash
-# Main agent runs this (auto-approved via Write(*) permission):
-date +%s > .git/hooks/reviewer-approved
-# Then immediately commit
-```
+- Get timestamp: `date +%s` via Bash
+- Write to `.reviewer-approved` at project root using the Write tool
+- Then immediately run git add and git commit
 
 ---
 

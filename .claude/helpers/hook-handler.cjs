@@ -22,7 +22,7 @@ if (args[0] === 'pre-bash') {
     const userCommit = process.env.USER_COMMIT === '1';
 
     if (!userCommit) {
-      const approvalFile = path.join(process.cwd(), '.git', 'hooks', 'reviewer-approved');
+      const approvalFile = path.join(process.cwd(), '.reviewer-approved');
 
       if (!fs.existsSync(approvalFile)) {
         console.error('[BLOCKED] No reviewer approval found');
