@@ -6,7 +6,7 @@ const RulesetSchema = z.enum(["2024", "2014"]).default("2024");
 
 export function registerBookContentTool(server: McpServer): void {
   server.tool(
-    "book_get",
+    "book_content_get",
     "Get content from a D&D 5e sourcebook or adventure by source abbreviation (e.g. SCC, EGW, PHB). " +
       "Without a section filter, returns a table of contents listing top-level chapter/section names. " +
       "With a section filter, returns the full text of the matching section (case-insensitive substring match). " +
