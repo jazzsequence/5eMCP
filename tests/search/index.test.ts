@@ -372,4 +372,89 @@ describe("searchContentType", () => {
     const results = await searchContentType("bestiary", "fire", "2024", 20, {}, undefined, true);
     expect(Array.isArray(results)).toBe(true);
   });
+
+  // Normalized source matching
+  it("matches 'codex of waves' against source 'WalrockHomebrewCodexOfWaves' via normalized comparison", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      spell: [
+        { name: "Sink", source: "WalrockHomebrewCodexOfWaves", level: 3 },
+        { name: "Fireball", source: "PHB", level: 3 },
+      ],
+    });
+    mockFetchRaw.mockResolvedValueOnce({ spell: [] });
+    const results = await searchContentType("spells", "codex of waves", "2024");
+    expect(results.map((r) => r.name)).toContain("Sink");
+    expect(results.map((r) => r.name)).not.toContain("Fireball");
+  });
+
+  it("matches 'matthew mercer' against source 'MatthewMercerWidogastsWebOfFire' via normalized comparison", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      spell: [
+        { name: "Widogast's Web of Fire", source: "MatthewMercerWidogastsWebOfFire", level: 6 },
+        { name: "Fireball", source: "PHB", level: 3 },
+      ],
+    });
+    mockFetchRaw.mockResolvedValueOnce({ spell: [] });
+    const results = await searchContentType("spells", "matthew mercer", "2024");
+    expect(results.map((r) => r.name)).toContain("Widogast's Web of Fire");
+    expect(results.map((r) => r.name)).not.toContain("Fireball");
+  });
+
+  // sourceAuthor injection from homebrew filename
+  it("injects sourceAuthor from homebrew filename with 'Author; Title.json' format", async () => {
+    const manifest = {
+      ...FAKE_MANIFEST,
+      homebrew: {
+        spells: [
+          {
+            name: "Matthew Mercer; Widogast's Web of Fire.json",
+            path: "spell/Matthew Mercer; Widogast's Web of Fire.json",
+            url: "https://raw.example.com/mercer-spells.json",
+            sha: "mc1",
+          },
+        ],
+      },
+    };
+    mockGetManifest.mockResolvedValue(manifest as never);
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS);
+    mockFetchRaw.mockResolvedValueOnce(XGE_SPELLS);
+    mockFetchRaw.mockResolvedValueOnce({
+      spell: [{ name: "Widogast's Web of Fire", source: "MercerSpells", level: 6 }],
+    });
+    const results = await searchContentType("spells", "", "2024", 20, {}, undefined, true);
+    const result = results.find((r) => r.name === "Widogast's Web of Fire");
+    expect(result).toBeDefined();
+    expect(result?.sourceAuthor).toBe("Matthew Mercer");
+  });
+
+  it("matches homebrew content when searching by sourceAuthor name", async () => {
+    const manifest = {
+      ...FAKE_MANIFEST,
+      homebrew: {
+        spells: [
+          {
+            name: "Matthew Mercer; Widogast's Web of Fire.json",
+            path: "spell/Matthew Mercer; Widogast's Web of Fire.json",
+            url: "https://raw.example.com/mercer-spells.json",
+            sha: "mc1",
+          },
+        ],
+      },
+    };
+    mockGetManifest.mockResolvedValue(manifest as never);
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS);
+    mockFetchRaw.mockResolvedValueOnce(XGE_SPELLS);
+    mockFetchRaw.mockResolvedValueOnce({
+      spell: [{ name: "Widogast's Web of Fire", source: "MercerSpells", level: 6 }],
+    });
+    const results = await searchContentType("spells", "matthew mercer", "2024", 20, {}, undefined, true);
+    expect(results.map((r) => r.name)).toContain("Widogast's Web of Fire");
+  });
+
+  it("does not inject sourceAuthor for official content files without semicolons", async () => {
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS).mockResolvedValueOnce(XGE_SPELLS);
+    const results = await searchContentType("spells", "fireball", "2024");
+    const result = results.find((r) => r.name === "Fireball");
+    expect(result?.sourceAuthor).toBeUndefined();
+  });
 });

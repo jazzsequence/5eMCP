@@ -470,6 +470,101 @@ describe("user intent: find the blood hunter class", () => {
   });
 });
 
+// ─── Scenario P: search by source name (Codex of Waves) ─────────────────────
+
+describe("user intent: find spells from the Codex of Waves", () => {
+  it("returns spells when searching 'codex of waves' against concatenated source abbreviation", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: {
+        spells: [{ name: "spells-phb.json", path: "spells/spells-phb.json", url: "https://raw.example.com/spells-phb.json", sha: "phb1" }],
+      },
+      homebrew: {
+        spells: [{ name: "Walrock Homebrew; Codex Of Waves.json", path: "spell/Walrock Homebrew; Codex Of Waves.json", url: "https://raw.example.com/cow.json", sha: "cow1" }],
+      },
+    } as never);
+
+    mockFetchRaw
+      .mockResolvedValueOnce({ spell: [{ name: "Fireball", source: "PHB", level: 3 }] })
+      .mockResolvedValueOnce({ spell: [
+        { name: "Sink", source: "WalrockHomebrewCodexOfWaves", level: 3 },
+        { name: "Water Tentacle", source: "WalrockHomebrewCodexOfWaves", level: 3 },
+      ] });
+
+    const results = await searchContentType("spells", "codex of waves", "2024", 20, {}, undefined, true);
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Sink");
+    expect(names).toContain("Water Tentacle");
+    expect(names).not.toContain("Fireball");
+  });
+
+  it("returns level 3 spells from Codex of Waves when combining source query and level filter", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: { spells: [] },
+      homebrew: {
+        spells: [{ name: "Walrock Homebrew; Codex Of Waves.json", path: "spell/Walrock Homebrew; Codex Of Waves.json", url: "https://raw.example.com/cow.json", sha: "cow1" }],
+      },
+    } as never);
+
+    mockFetchRaw.mockResolvedValueOnce({ spell: [
+      { name: "Sink", source: "WalrockHomebrewCodexOfWaves", level: 3 },
+      { name: "Air Bubble", source: "WalrockHomebrewCodexOfWaves", level: 2 },
+    ] });
+
+    const results = await searchContentType("spells", "codex of waves", "2024", 20, { level: 3 }, undefined, true);
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Sink");
+    expect(names).not.toContain("Air Bubble");
+  });
+});
+
+// ─── Scenario Q: search by author name ───────────────────────────────────────
+
+describe("user intent: find everything written by Matt Mercer", () => {
+  it("finds homebrew spells by author name via sourceAuthor field", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: { spells: [] },
+      homebrew: {
+        spells: [
+          { name: "Matthew Mercer; Widogast's Web of Fire.json", path: "spell/Matthew Mercer; Widogast's Web of Fire.json", url: "https://raw.example.com/mercer-spells.json", sha: "mc1" },
+          { name: "Walrock Homebrew; Codex Of Waves.json", path: "spell/Walrock Homebrew; Codex Of Waves.json", url: "https://raw.example.com/cow.json", sha: "cow1" },
+        ],
+      },
+    } as never);
+
+    mockFetchRaw
+      .mockResolvedValueOnce({ spell: [{ name: "Widogast's Web of Fire", source: "MercerSpells", level: 6 }] })
+      .mockResolvedValueOnce({ spell: [{ name: "Sink", source: "WalrockHomebrewCodexOfWaves", level: 3 }] });
+
+    const results = await searchContentType("spells", "matthew mercer", "2024", 20, {}, undefined, true);
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Widogast's Web of Fire");
+    expect(names).not.toContain("Sink");
+  });
+
+  it("sourceAuthor is present on results from homebrew files with 'Author; Title.json' naming", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: { spells: [] },
+      homebrew: {
+        spells: [{ name: "Matthew Mercer; Widogast's Web of Fire.json", path: "spell/Matthew Mercer; Widogast's Web of Fire.json", url: "https://raw.example.com/mercer-spells.json", sha: "mc1" }],
+      },
+    } as never);
+
+    mockFetchRaw.mockResolvedValueOnce({ spell: [{ name: "Widogast's Web of Fire", source: "MercerSpells", level: 6 }] });
+
+    const results = await searchContentType("spells", "", "2024", 20, {}, undefined, true);
+    const result = results.find((r) => r.name === "Widogast's Web of Fire");
+    expect(result?.sourceAuthor).toBe("Matthew Mercer");
+  });
+});
+
 // ─── Scenario J: no deep recursion into nested entries ───────────────────────
 
 describe("user intent: search does not match deeply nested text", () => {

@@ -6,7 +6,19 @@ import { resolveTagsDeep } from "../translation/tags.js";
 import type { Ruleset } from "../types.js";
 
 /** Fields checked for query matches in addition to name. */
-const SEARCHABLE_FIELDS = ["source", "pantheon"] as const;
+const SEARCHABLE_FIELDS = ["source", "pantheon", "sourceAuthor"] as const;
+
+/** Strips non-alphanumeric characters and lowercases — for matching concatenated source abbreviations. */
+function normalize(s: string): string {
+  return s.toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+/** Extracts the author portion from a homebrew filename like "Matthew Mercer; Widogast's Web of Fire.json". */
+function parseSourceAuthor(filename: string): string | undefined {
+  const semicolonIdx = filename.indexOf(";");
+  if (semicolonIdx === -1) return undefined;
+  return filename.slice(0, semicolonIdx).trim();
+}
 
 /** Parses a CR string ("1/4", "1/2", "5", etc.) to a number for comparison. */
 function parseCR(cr: unknown): number {
@@ -58,10 +70,15 @@ function entryMatchesFilters(entry: Record<string, unknown>, filters: Record<str
 
 /** Returns true if any searchable field on the entry contains the query string. */
 function entryMatchesQuery(entry: Record<string, unknown>, lowerQuery: string): boolean {
-  // Check named string fields first (name, source, pantheon)
+  const normalizedQuery = normalize(lowerQuery);
+  // Check named string fields first (name, source, pantheon, sourceAuthor)
   for (const field of ["name", ...SEARCHABLE_FIELDS]) {
     const val = entry[field];
-    if (typeof val === "string" && val.toLowerCase().includes(lowerQuery)) return true;
+    if (typeof val === "string") {
+      if (val.toLowerCase().includes(lowerQuery)) return true;
+      // Normalized fallback: strips spaces/punctuation so "codex of waves" matches "WalrockHomebrewCodexOfWaves"
+      if (field !== "name" && normalizedQuery && normalize(val).includes(normalizedQuery)) return true;
+    }
   }
   // Check all top-level array-of-strings fields (property, damageInflict, environment, etc.)
   for (const val of Object.values(entry)) {
@@ -80,7 +97,7 @@ function entryMatchesQuery(entry: Record<string, unknown>, lowerQuery: string): 
  */
 /** Searches a list of manifest files and appends matching entries to results up to limit. */
 async function searchFiles(
-  files: { url: string }[],
+  files: { url: string; name?: string }[],
   contentKey: string,
   lowerQuery: string,
   filters: Record<string, unknown>,
@@ -90,6 +107,8 @@ async function searchFiles(
   for (const file of files) {
     if (results.length >= limit) break;
 
+    const sourceAuthor = file.name ? parseSourceAuthor(file.name) : undefined;
+
     const data = (await fetchRaw(file.url)) as Record<string, unknown> | undefined;
     if (!data) continue;
     const entries = data[contentKey];
@@ -97,8 +116,9 @@ async function searchFiles(
 
     for (const entry of entries as Record<string, unknown>[]) {
       if (results.length >= limit) break;
-      if ((!lowerQuery || entryMatchesQuery(entry, lowerQuery)) && entryMatchesFilters(entry, filters)) {
-        const translated = resolveTagsDeep(stripInternalFields(entry)) as Record<string, unknown>;
+      const augmented: Record<string, unknown> = sourceAuthor ? { ...entry, sourceAuthor } : entry;
+      if ((!lowerQuery || entryMatchesQuery(augmented, lowerQuery)) && entryMatchesFilters(augmented, filters)) {
+        const translated = resolveTagsDeep(stripInternalFields(augmented)) as Record<string, unknown>;
         results.push(translated);
       }
     }
