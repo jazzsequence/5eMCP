@@ -23,6 +23,8 @@ export const CONTENT_KEY_MAP: Record<string, string> = {
   languages: "language",
   skills: "skill",
   senses: "sense",
+  books: "book",
+  adventures: "adventure",
 };
 
 /**

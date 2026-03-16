@@ -31,7 +31,7 @@ export async function getManifest(ruleset: Ruleset): Promise<Manifest> {
   console.error(`Building manifest for ruleset ${ruleset}...`);
   const manifest = await buildManifest(ruleset);
   manifests.set(ruleset, manifest);
-  await cacheSet(key, manifest);
+  await cacheSet(key, manifest, TTL_SECONDS);
 
   const typeCount = Object.keys(manifest.content).length;
   const fileCount = Object.values(manifest.content).reduce((n, files) => n + files.length, 0);
@@ -48,7 +48,7 @@ export function startRefreshLoop(rulesets: Ruleset[] = ["2024"]): void {
       buildManifest(ruleset)
         .then((manifest) => {
           manifests.set(ruleset, manifest);
-          return cacheSet(manifestKey(ruleset), manifest);
+          return cacheSet(manifestKey(ruleset), manifest, TTL_SECONDS);
         })
         .catch((err: unknown) => {
           console.error(`Failed to refresh manifest for ${ruleset}:`, err);

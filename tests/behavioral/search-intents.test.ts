@@ -355,6 +355,85 @@ describe("user intent: get a summary list of monsters without full stat blocks",
   });
 });
 
+// ─── Scenario M: homebrew search ─────────────────────────────────────────────
+
+describe("user intent: find homebrew spells", () => {
+  it("returns homebrew spells alongside official spells when include_homebrew=true", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2014" as const,
+      built_at: Date.now(),
+      content: {
+        spells: [{ name: "spells-phb.json", path: "spells/spells-phb.json", url: "https://raw.example.com/spells-phb.json", sha: "phb1" }],
+      },
+      homebrew: {
+        spells: [{ name: "spells-mercer.json", path: "spells/spells-mercer.json", url: "https://raw.example.com/spells-mercer.json", sha: "hb1" }],
+      },
+    } as never);
+
+    mockFetchRaw
+      .mockResolvedValueOnce({ spell: [{ name: "Fireball", source: "PHB", level: 3 }] })
+      .mockResolvedValueOnce({ spell: [{ name: "Blood Curse of the Eyeless", source: "BMT", level: 1 }] });
+
+    const results = await searchContentType("spells", "", "2014", 20, {}, undefined, true);
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Fireball");
+    expect(names).toContain("Blood Curse of the Eyeless");
+  });
+
+  it("returns only official spells when include_homebrew=false", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2014" as const,
+      built_at: Date.now(),
+      content: {
+        spells: [{ name: "spells-phb.json", path: "spells/spells-phb.json", url: "https://raw.example.com/spells-phb.json", sha: "phb1" }],
+      },
+      homebrew: {
+        spells: [{ name: "spells-mercer.json", path: "spells/spells-mercer.json", url: "https://raw.example.com/spells-mercer.json", sha: "hb1" }],
+      },
+    } as never);
+
+    mockFetchRaw.mockResolvedValueOnce({ spell: [{ name: "Fireball", source: "PHB", level: 3 }] });
+
+    const results = await searchContentType("spells", "", "2014");
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Fireball");
+    expect(mockFetchRaw).toHaveBeenCalledTimes(1);  // only official file fetched
+  });
+});
+
+// ─── Scenario N: book search ──────────────────────────────────────────────────
+
+describe("user intent: find available sourcebooks", () => {
+  it("returns sourcebook entries when searching books by name", async () => {
+    mockGetManifest.mockResolvedValue(makeManifest("books", "books.json") as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      book: [
+        { name: "Player's Handbook", id: "PHB", source: "PHB", published: "2014-08-19" },
+        { name: "Xanathar's Guide to Everything", id: "XGE", source: "XGE", published: "2017-11-21" },
+        { name: "Tasha's Cauldron of Everything", id: "TCE", source: "TCE", published: "2020-11-17" },
+      ],
+    });
+
+    const results = await searchContentType("books", "xanathar", "2014");
+    expect(results.map((r) => r.name)).toContain("Xanathar's Guide to Everything");
+    expect(results.map((r) => r.name)).not.toContain("Player's Handbook");
+  });
+
+  it("returns adventures when searching by name", async () => {
+    mockGetManifest.mockResolvedValue(makeManifest("adventures", "adventures.json") as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      adventure: [
+        { name: "Lost Mine of Phandelver", id: "LMoP", source: "LMoP", published: "2014-07-15" },
+        { name: "Curse of Strahd", id: "CoS", source: "CoS", published: "2016-03-15" },
+      ],
+    });
+
+    const results = await searchContentType("adventures", "strahd", "2014");
+    expect(results.map((r) => r.name)).toContain("Curse of Strahd");
+    expect(results.map((r) => r.name)).not.toContain("Lost Mine of Phandelver");
+  });
+});
+
 // ─── Scenario J: no deep recursion into nested entries ───────────────────────
 
 describe("user intent: search does not match deeply nested text", () => {

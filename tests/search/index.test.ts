@@ -39,7 +39,11 @@ const FAKE_MANIFEST = {
       { name: "bestiary-mm.json", path: "bestiary/bestiary-mm.json", url: "https://raw.example.com/bestiary-mm.json", sha: "mm1" },
     ],
   },
-  homebrew: {},
+  homebrew: {
+    spells: [
+      { name: "homebrew-spells.json", path: "spells/homebrew-spells.json", url: "https://raw.example.com/homebrew-spells.json", sha: "hb1" },
+    ],
+  },
 };
 
 const PHB_SPELLS = {
@@ -322,5 +326,50 @@ describe("searchContentType", () => {
     expect(results.map((r) => r.name)).toContain("Fireball");
     expect(results.map((r) => r.name)).not.toContain("Scorching Ray");
     expect(results.map((r) => r.name)).not.toContain("Wall of Ice");
+  });
+
+  // Homebrew search
+  it("includes homebrew results when include_homebrew is true", async () => {
+    // official PHB spells first, then homebrew
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS);
+    mockFetchRaw.mockResolvedValueOnce(XGE_SPELLS);
+    mockFetchRaw.mockResolvedValueOnce({
+      spell: [{ name: "Homebrew Fire Blast", source: "HB", level: 2, school: "V" }],
+    });
+    const results = await searchContentType("spells", "fire", "2024", 20, {}, undefined, true);
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Fireball");
+    expect(names).toContain("Firestorm");
+    expect(names).toContain("Homebrew Fire Blast");
+  });
+
+  it("does not include homebrew results when include_homebrew is false (default)", async () => {
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS);
+    mockFetchRaw.mockResolvedValueOnce(XGE_SPELLS);
+    const results = await searchContentType("spells", "fire", "2024", 20, {}, undefined, false);
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Fireball");
+    expect(names).not.toContain("Homebrew Fire Blast");
+    // homebrew file should not have been fetched
+    expect(mockFetchRaw).toHaveBeenCalledTimes(2);
+  });
+
+  it("respects limit across combined official and homebrew results", async () => {
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS);
+    mockFetchRaw.mockResolvedValueOnce(XGE_SPELLS);
+    mockFetchRaw.mockResolvedValueOnce({
+      spell: [{ name: "Homebrew Fire Blast", source: "HB", level: 2, school: "V" }],
+    });
+    // limit=3 means 3 results total from both official (3 fire) and homebrew
+    const results = await searchContentType("spells", "fire", "2024", 3, {}, undefined, true);
+    expect(results).toHaveLength(3);
+  });
+
+  it("returns empty homebrew array gracefully when no homebrew for content type", async () => {
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS);
+    mockFetchRaw.mockResolvedValueOnce(XGE_SPELLS);
+    // bestiary has no homebrew in FAKE_MANIFEST
+    const results = await searchContentType("bestiary", "fire", "2024", 20, {}, undefined, true);
+    expect(Array.isArray(results)).toBe(true);
   });
 });

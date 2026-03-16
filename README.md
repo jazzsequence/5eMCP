@@ -94,7 +94,7 @@ Add to `~/.claude.json`:
 | `fetch_content` | Fetch and translate any file in the manifest by content type + file name. Universal fallback for any content type. |
 
 ### Search Tools (`*_search`)
-All search tools accept `query` (name substring), `ruleset` (`"2024"` or `"2014"`), `limit`, and `fields` (optional list of field names to include in each result — default is all fields, e.g. `["name","cr","source"]`). Results match on name, source abbreviation, pantheon/setting, and any top-level array-of-strings field in the data (e.g. `damageInflict`, `conditionInflict`, `environment`, `property` tags like `"Vst|EGW"`).
+All search tools accept `query` (name substring), `ruleset` (`"2024"` or `"2014"`), `limit`, `fields` (optional list of field names to include in each result — default is all fields, e.g. `["name","cr","source"]`), and `include_homebrew` (boolean, default false — when true also searches TheGiddyLimit/homebrew alongside official results). Results match on name, source abbreviation, pantheon/setting, and any top-level array-of-strings field in the data (e.g. `damageInflict`, `conditionInflict`, `environment`, `property` tags like `"Vst|EGW"`).
 
 Selected tools support additional structured filter parameters:
 
@@ -126,6 +126,8 @@ Selected tools support additional structured filter parameters:
 | `language_search` | Languages |
 | `skill_search` | Skills |
 | `sense_search` | Senses (darkvision, tremorsense, etc.) |
+| `book_search` | Sourcebooks (name, ID, source, publication date) |
+| `adventure_search` | Published adventures |
 
 ### Get Tools (`*_get`)
 Exact lookup by name with full fluff/description merged in. Accept `name`, optional `source`, and `ruleset`.
@@ -138,13 +140,15 @@ Exact lookup by name with full fluff/description merged in. Accept `name`, optio
 | `race_get` | Full race entry with traits and fluff |
 | `background_get` | Full background entry with fluff |
 | `feat_get` | Full feat entry |
+| `book_get` | Sourcebook metadata by name |
+| `adventure_get` | Adventure metadata by name |
 
 ### Omnisearch
 | Tool | Description |
 |---|---|
 | `omnisearch` | Search all 20 content types at once. Returns results tagged with `entityType`. |
 
-Books, adventures, homebrew, and DM calculators (CR calculator, encounter builder, loot generator, CR scaling) are added in Phases 3–4.
+DM calculators (CR calculator, encounter builder, loot generator, CR scaling) are added in Phase 4.
 
 ## Environment Variables
 
@@ -154,6 +158,7 @@ Books, adventures, homebrew, and DM calculators (CR calculator, encounter builde
 | `DEFAULT_RULESET` | `"2024"` | Which ruleset to use (`"2024"` or `"2014"`). |
 | `MANIFEST_TTL_SECONDS` | `3600` | How often to rebuild the manifest (seconds). |
 | `CACHE_DIR` | `~/.cache/5etools-mcp` | Disk cache location (local stdio mode). |
+| `REDIS_URL` | — | Redis connection URL (e.g. `redis://localhost:6379`). When set and reachable, Redis is used instead of disk cache. Falls back to disk on connection failure. |
 
 ## Ruleset Support
 

@@ -177,7 +177,7 @@ describe("registerTypedTools", () => {
     registerTypedTools(server);
     const [, , , handler] = tools["spell_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     await handler({ query: "fire", ruleset: "2024", limit: 10 });
-    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10, {}, undefined);
+    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10, {}, undefined, false);
   });
 
   it("spell_search passes level filter to searchContentType", async () => {
@@ -185,7 +185,7 @@ describe("registerTypedTools", () => {
     registerTypedTools(server);
     const [, , , handler] = tools["spell_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     await handler({ query: "fire", ruleset: "2024", limit: 10, level: 3 });
-    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10, { level: 3 }, undefined);
+    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10, { level: 3 }, undefined, false);
   });
 
   it("spell_search passes school filter mapped to abbreviation", async () => {
@@ -193,7 +193,7 @@ describe("registerTypedTools", () => {
     registerTypedTools(server);
     const [, , , handler] = tools["spell_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     await handler({ query: "", ruleset: "2024", limit: 20, school: "evocation" });
-    expect(mockSearch).toHaveBeenCalledWith("spells", "", "2024", 20, { school: "V" }, undefined);
+    expect(mockSearch).toHaveBeenCalledWith("spells", "", "2024", 20, { school: "V" }, undefined, false);
   });
 
   it("monster_search passes type and cr_max filters", async () => {
@@ -201,7 +201,7 @@ describe("registerTypedTools", () => {
     registerTypedTools(server);
     const [, , , handler] = tools["monster_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     await handler({ query: "", ruleset: "2024", limit: 20, type: "beast", cr_max: "1/2" });
-    expect(mockSearch).toHaveBeenCalledWith("bestiary", "", "2024", 20, { type: "beast", cr_max: "1/2" }, undefined);
+    expect(mockSearch).toHaveBeenCalledWith("bestiary", "", "2024", 20, { type: "beast", cr_max: "1/2" }, undefined, false);
   });
 
   it("monster_search passes environment filter", async () => {
@@ -209,7 +209,7 @@ describe("registerTypedTools", () => {
     registerTypedTools(server);
     const [, , , handler] = tools["monster_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     await handler({ query: "", ruleset: "2024", limit: 20, environment: "underdark" });
-    expect(mockSearch).toHaveBeenCalledWith("bestiary", "", "2024", 20, { environment: "underdark" }, undefined);
+    expect(mockSearch).toHaveBeenCalledWith("bestiary", "", "2024", 20, { environment: "underdark" }, undefined, false);
   });
 
   it("item_search passes rarity filter", async () => {
@@ -217,7 +217,7 @@ describe("registerTypedTools", () => {
     registerTypedTools(server);
     const [, , , handler] = tools["item_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     await handler({ query: "", ruleset: "2024", limit: 20, rarity: "legendary" });
-    expect(mockSearch).toHaveBeenCalledWith("items", "", "2024", 20, { rarity: "legendary" }, undefined);
+    expect(mockSearch).toHaveBeenCalledWith("items", "", "2024", 20, { rarity: "legendary" }, undefined, false);
   });
 
   it("spell_search passes fields parameter to searchContentType", async () => {
@@ -225,7 +225,7 @@ describe("registerTypedTools", () => {
     registerTypedTools(server);
     const [, , , handler] = tools["spell_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     await handler({ query: "fire", ruleset: "2024", limit: 10, fields: ["name", "source"] });
-    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10, {}, ["name", "source"]);
+    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10, {}, ["name", "source"], false);
   });
 
   it("monster_search passes fields parameter to searchContentType", async () => {
@@ -233,7 +233,7 @@ describe("registerTypedTools", () => {
     registerTypedTools(server);
     const [, , , handler] = tools["monster_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     await handler({ query: "", ruleset: "2024", limit: 20, fields: ["name", "cr", "type"] });
-    expect(mockSearch).toHaveBeenCalledWith("bestiary", "", "2024", 20, {}, ["name", "cr", "type"]);
+    expect(mockSearch).toHaveBeenCalledWith("bestiary", "", "2024", 20, {}, ["name", "cr", "type"], false);
   });
 
   it("spell_get calls getEntry with correct args", async () => {
@@ -261,5 +261,53 @@ describe("registerTypedTools", () => {
     const [, , , handler] = tools["spell_get"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     const result = await handler({ name: "Nonexistent", ruleset: "2024" });
     expect(result.isError).toBe(true);
+  });
+
+  it("registers book_search tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["book_search"]).toBeDefined();
+  });
+
+  it("registers book_get tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["book_get"]).toBeDefined();
+  });
+
+  it("registers adventure_search tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["adventure_search"]).toBeDefined();
+  });
+
+  it("registers adventure_get tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["adventure_get"]).toBeDefined();
+  });
+
+  it("book_search calls searchContentType with books folder", async () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    const [, , , handler] = tools["book_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
+    await handler({ query: "player", ruleset: "2024", limit: 10 });
+    expect(mockSearch).toHaveBeenCalledWith("books", "player", "2024", 10, {}, undefined, false);
+  });
+
+  it("spell_search passes include_homebrew to searchContentType", async () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    const [, , , handler] = tools["spell_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
+    await handler({ query: "fire", ruleset: "2024", limit: 10, include_homebrew: true });
+    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10, {}, undefined, true);
+  });
+
+  it("spell_search passes include_homebrew=false by default", async () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    const [, , , handler] = tools["spell_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
+    await handler({ query: "fire", ruleset: "2024", limit: 10 });
+    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10, {}, undefined, false);
   });
 });

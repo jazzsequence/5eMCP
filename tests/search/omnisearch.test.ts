@@ -45,8 +45,8 @@ describe("omnisearch", () => {
     mockSearch.mockResolvedValue(manySpells);
 
     const results = await omnisearch("spell", "2024");
-    // With 20 content types each returning up to 5 results by default, max = 100
-    expect(results.length).toBeLessThanOrEqual(100);
+    // With 22 content types each returning up to 5 results by default, max = 110
+    expect(results.length).toBeLessThanOrEqual(110);
   });
 
   it("returns empty array when nothing matches", async () => {

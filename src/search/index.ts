@@ -78,6 +78,38 @@ function entryMatchesQuery(entry: Record<string, unknown>, lowerQuery: string): 
  * Searches all files of a given content type folder (e.g. "spells") in the manifest,
  * fetches and filters entries by name, source, or pantheon substring match.
  */
+/** Searches a list of manifest files and appends matching entries to results up to limit. */
+async function searchFiles(
+  files: { url: string }[],
+  contentKey: string,
+  lowerQuery: string,
+  filters: Record<string, unknown>,
+  results: Record<string, unknown>[],
+  limit: number,
+): Promise<void> {
+  for (const file of files) {
+    if (results.length >= limit) break;
+
+    const data = (await fetchRaw(file.url)) as Record<string, unknown> | undefined;
+    if (!data) continue;
+    const entries = data[contentKey];
+    if (!Array.isArray(entries)) continue;
+
+    for (const entry of entries as Record<string, unknown>[]) {
+      if (results.length >= limit) break;
+      if ((!lowerQuery || entryMatchesQuery(entry, lowerQuery)) && entryMatchesFilters(entry, filters)) {
+        const translated = resolveTagsDeep(stripInternalFields(entry)) as Record<string, unknown>;
+        results.push(translated);
+      }
+    }
+  }
+}
+
+/**
+ * Searches all files of a given content type folder (e.g. "spells") in the manifest,
+ * fetches and filters entries by name, source, or pantheon substring match.
+ * When include_homebrew is true, also searches homebrew files for the same content type.
+ */
 export async function searchContentType(
   contentTypeFolder: string,
   query: string,
@@ -85,6 +117,7 @@ export async function searchContentType(
   limit = 20,
   filters: Record<string, unknown> = {},
   fields?: string[],
+  include_homebrew = false,
 ): Promise<Record<string, unknown>[]> {
   const manifest = await getManifest(ruleset);
   const files = manifest.content[contentTypeFolder];
@@ -96,20 +129,12 @@ export async function searchContentType(
   const lowerQuery = query.toLowerCase();
   const results: Record<string, unknown>[] = [];
 
-  for (const file of files) {
-    if (results.length >= limit) break;
+  await searchFiles(files, contentKey, lowerQuery, filters, results, limit);
 
-    const data = await fetchRaw(file.url) as Record<string, unknown> | undefined;
-    if (!data) continue;
-    const entries = data[contentKey];
-    if (!Array.isArray(entries)) continue;
-
-    for (const entry of entries as Record<string, unknown>[]) {
-      if (results.length >= limit) break;
-      if ((!lowerQuery || entryMatchesQuery(entry, lowerQuery)) && entryMatchesFilters(entry, filters)) {
-        const translated = resolveTagsDeep(stripInternalFields(entry)) as Record<string, unknown>;
-        results.push(translated);
-      }
+  if (include_homebrew && results.length < limit) {
+    const homebrewFiles = manifest.homebrew[contentTypeFolder];
+    if (homebrewFiles && homebrewFiles.length > 0) {
+      await searchFiles(homebrewFiles, contentKey, lowerQuery, filters, results, limit);
     }
   }
 

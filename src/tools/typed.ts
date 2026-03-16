@@ -124,6 +124,8 @@ const CONTENT_TOOLS: ContentToolConfig[] = [
   { noun: "language", folder: "languages", description: "D&D 5e language" },
   { noun: "skill", folder: "skills", description: "D&D 5e skill" },
   { noun: "sense", folder: "senses", description: "D&D 5e sense (e.g. darkvision, tremorsense)" },
+  { noun: "book", folder: "books", description: "D&D 5e sourcebook", hasGet: true },
+  { noun: "adventure", folder: "adventures", description: "D&D 5e published adventure", hasGet: true },
 ];
 
 export function registerTypedTools(server: McpServer): void {
@@ -138,6 +140,9 @@ export function registerTypedTools(server: McpServer): void {
       fields: z.array(z.string()).optional().describe(
         "Fields to include in each result (default: all fields). E.g. [\"name\",\"cr\",\"source\"]",
       ),
+      include_homebrew: z.boolean().default(false).describe(
+        "When true, also search TheGiddyLimit/homebrew content alongside official results",
+      ),
       ...(filters?.schema ?? {}),
     };
 
@@ -146,15 +151,16 @@ export function registerTypedTools(server: McpServer): void {
       `Search ${description}s by name. Returns a list of matching entries.`,
       searchSchema,
       async (params) => {
-        const { query, ruleset, limit, fields, ...rest } = params as {
+        const { query, ruleset, limit, fields, include_homebrew = false, ...rest } = params as {
           query: string;
           ruleset: "2024" | "2014";
           limit: number;
           fields?: string[];
+          include_homebrew?: boolean;
           [key: string]: unknown;
         };
         const builtFilters = filters?.build(rest) ?? {};
-        const results = await searchContentType(folder, query, ruleset, limit, builtFilters, fields);
+        const results = await searchContentType(folder, query, ruleset, limit, builtFilters, fields, include_homebrew);
         return {
           content: [{ type: "text", text: JSON.stringify(results, null, 2) }],
         };
