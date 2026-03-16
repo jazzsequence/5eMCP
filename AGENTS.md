@@ -58,16 +58,16 @@ CODE QUALITY:
 SECURITY:
 19. No secrets or .env files staged?
 20. No credentials in source code?
-17. GITHUB_TOKEN only read from env, never hardcoded?
+21. GITHUB_TOKEN only read from env, never hardcoded?
 
 DEPENDENCIES:
-18. New deps are MIT/Apache/BSD licensed?
-19. No GPL/AGPL unless explicitly approved?
+22. New deps are MIT/Apache/BSD licensed?
+23. No GPL/AGPL unless explicitly approved?
 
 GIT PRACTICES:
-20. Incremental commits (not one massive dump)?
-21. Commit messages clear and descriptive?
-22. NEVER amend published commits?
+24. Incremental commits (not one massive dump)?
+25. Commit messages clear and descriptive?
+26. NEVER amend published commits?
 
 FILES TO REVIEW:
 - Run: npm test (verify all tests pass)
