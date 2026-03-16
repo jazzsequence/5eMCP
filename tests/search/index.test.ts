@@ -32,6 +32,12 @@ const FAKE_MANIFEST = {
     deities: [
       { name: "deities.json", path: "deities.json", url: "https://raw.example.com/deities.json", sha: "deity1" },
     ],
+    items: [
+      { name: "items.json", path: "items.json", url: "https://raw.example.com/items.json", sha: "item1" },
+    ],
+    bestiary: [
+      { name: "bestiary-mm.json", path: "bestiary/bestiary-mm.json", url: "https://raw.example.com/bestiary-mm.json", sha: "mm1" },
+    ],
   },
   homebrew: {},
 };
@@ -142,5 +148,72 @@ describe("searchContentType", () => {
     expect(mockFetchRaw).toHaveBeenCalledTimes(2);
     expect(mockFetchRaw).toHaveBeenCalledWith("https://raw.example.com/spells-phb.json");
     expect(mockFetchRaw).toHaveBeenCalledWith("https://raw.example.com/spells-xge.json");
+  });
+
+  // Array field search
+  it("matches on top-level array-of-strings field (property)", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      item: [
+        { name: "Vestige Blade", source: "EGW", property: ["Vst|EGW", "F"] },
+        { name: "Longsword", source: "PHB", property: ["V"] },
+      ],
+    });
+    const results = await searchContentType("items", "vst", "2024");
+    expect(results.map((r) => r.name)).toContain("Vestige Blade");
+    expect(results.map((r) => r.name)).not.toContain("Longsword");
+  });
+
+  it("matches on damageInflict array field when name does not contain the query", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      spell: [
+        { name: "Scorching Ray", source: "PHB", damageInflict: ["fire"] },
+        { name: "Chill Touch", source: "PHB", damageInflict: ["cold"] },
+      ],
+    });
+    const results = await searchContentType("spells", "cold", "2024");
+    expect(results.map((r) => r.name)).toContain("Chill Touch");
+    expect(results.map((r) => r.name)).not.toContain("Scorching Ray");
+  });
+
+  it("matches on environment array field", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      monster: [
+        { name: "Drow Elite Warrior", source: "MM", environment: ["underdark"] },
+        { name: "Brown Bear", source: "MM", environment: ["forest", "hill"] },
+      ],
+    });
+    const results = await searchContentType("bestiary", "underdark", "2024");
+    expect(results.map((r) => r.name)).toContain("Drow Elite Warrior");
+    expect(results.map((r) => r.name)).not.toContain("Brown Bear");
+  });
+
+  it("does not match text nested inside objects within arrays", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      monster: [
+        {
+          name: "Ice Toad",
+          source: "MM",
+          action: [{ name: "Bite", entries: ["The toad breathes fire."] }],
+        },
+      ],
+    });
+    const results = await searchContentType("bestiary", "fire", "2024");
+    expect(results.map((r) => r.name)).not.toContain("Ice Toad");
+  });
+
+  it("does not match non-string array elements", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      item: [{ name: "Magic Helm", source: "PHB", bonuses: [1, 2, 3] }],
+    });
+    const results = await searchContentType("items", "1", "2024");
+    expect(results.map((r) => r.name)).not.toContain("Magic Helm");
+  });
+
+  it("handles empty array fields without error", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      item: [{ name: "Plain Dagger", source: "PHB", property: [] }],
+    });
+    const results = await searchContentType("items", "finesse", "2024");
+    expect(results).toHaveLength(0);
   });
 });

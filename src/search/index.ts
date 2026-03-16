@@ -10,9 +10,18 @@ const SEARCHABLE_FIELDS = ["source", "pantheon"] as const;
 
 /** Returns true if any searchable field on the entry contains the query string. */
 function entryMatchesQuery(entry: Record<string, unknown>, lowerQuery: string): boolean {
+  // Check named string fields first (name, source, pantheon)
   for (const field of ["name", ...SEARCHABLE_FIELDS]) {
     const val = entry[field];
     if (typeof val === "string" && val.toLowerCase().includes(lowerQuery)) return true;
+  }
+  // Check all top-level array-of-strings fields (property, damageInflict, environment, etc.)
+  for (const val of Object.values(entry)) {
+    if (Array.isArray(val)) {
+      for (const el of val) {
+        if (typeof el === "string" && el.toLowerCase().includes(lowerQuery)) return true;
+      }
+    }
   }
   return false;
 }
@@ -40,7 +49,8 @@ export async function searchContentType(
   for (const file of files) {
     if (results.length >= limit) break;
 
-    const data = await fetchRaw(file.url) as Record<string, unknown>;
+    const data = await fetchRaw(file.url) as Record<string, unknown> | undefined;
+    if (!data) continue;
     const entries = data[contentKey];
     if (!Array.isArray(entries)) continue;
 

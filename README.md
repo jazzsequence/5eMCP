@@ -94,7 +94,7 @@ Add to `~/.claude.json`:
 | `fetch_content` | Fetch and translate any file in the manifest by content type + file name. Universal fallback for any content type. |
 
 ### Search Tools (`*_search`)
-All search tools accept `query` (name substring), `ruleset` (`"2024"` or `"2014"`), and `limit`. Results match on name, source abbreviation, and setting/pantheon fields.
+All search tools accept `query` (name substring), `ruleset` (`"2024"` or `"2014"`), and `limit`. Results match on name, source abbreviation, pantheon/setting, and any top-level array-of-strings field in the data (e.g. `damageInflict`, `conditionInflict`, `environment`, `property` tags like `"Vst|EGW"`).
 
 | Tool | Content |
 |---|---|
