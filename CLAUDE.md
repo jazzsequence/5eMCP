@@ -58,10 +58,10 @@ src/
 
 ## Implementation Phases
 
-- **Phase 1 (current):** Manifest core + universal passthrough. Every content type accessible via `fetch_content` before any typed handler exists.
-- **Phase 2:** Typed handlers for reference content (spells, bestiary, items, conditions, etc.)
-- **Phase 3:** Books, adventures, homebrew + Redis cache
-- **Phase 4:** Callable DM tools (CR calculator, encounter builder, loot generator, CR scaling)
+- **Phase 1 (done):** Manifest core + universal passthrough. Every content type accessible via `fetch_content`.
+- **Phase 2 (done):** Typed search/get tools for all 22 content types, multi-field search, structured filters (level, school, cr_max, type, rarity, environment), fields projection, omnisearch.
+- **Phase 3 (done):** Books/adventures index tools, homebrew search (include_homebrew flag), Redis cache (gated on REDIS_URL, falls back to disk).
+- **Phase 4 (current):** Callable DM tools (CR calculator, encounter builder, loot generator, CR scaling)
 - **Phase 5:** Express HTTP transport + Pantheon deploy
 
 ## Key Design Rules

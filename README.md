@@ -4,7 +4,7 @@ A complete D&D 5e reference and utility MCP server backed by live [5etools](http
 
 ## What It Does
 
-Provides every content type 5e.tools displays — spells, monsters, items, classes, backgrounds, feats, races, conditions, vehicles, traps, full sourcebook prose, full adventure text, and homebrew — plus callable DM utility tools (CR calculator, encounter builder, loot generator, CR scaling). All backed by live 5etools GitHub data, no hardcoded content.
+Provides every content type 5e.tools displays — spells, monsters, items, classes, backgrounds, feats, races, conditions, vehicles, traps, sourcebooks, adventures, and homebrew — plus callable DM utility tools (CR calculator, encounter builder, loot generator, CR scaling, Phase 4). All backed by live 5etools GitHub data, no hardcoded content.
 
 | Feature | Coverage |
 |---|---|
@@ -15,14 +15,13 @@ Provides every content type 5e.tools displays — spells, monsters, items, class
 | Backgrounds, Feats, Races | Full entries + fluff |
 | Conditions, Rules, Tables | Complete |
 | Vehicles, Objects, Traps, Psionics | Complete |
-| Adventure prose | Full chapter/section text |
-| Sourcebook prose | Full chapter text |
-| Homebrew | All TheGiddyLimit/homebrew content |
-| CR Calculator | DMG formula, full breakdown |
-| Encounter Builder | XP budget, party-level scaling |
-| Loot Generator | DMG treasure tables, resolved items |
-| CR Scaling | Scale any monster to target CR |
+| Books & Adventures | Searchable index (name, ID, source, date) |
+| Homebrew | All TheGiddyLimit/homebrew content (via include_homebrew flag) |
 | Any future 5etools content type | Passthrough handler — always accessible |
+| CR Calculator | Phase 4 |
+| Encounter Builder | Phase 4 |
+| Loot Generator | Phase 4 |
+| CR Scaling | Phase 4 |
 
 ## Why Not Existing Solutions
 
@@ -146,7 +145,7 @@ Exact lookup by name with full fluff/description merged in. Accept `name`, optio
 ### Omnisearch
 | Tool | Description |
 |---|---|
-| `omnisearch` | Search all 20 content types at once. Returns results tagged with `entityType`. |
+| `omnisearch` | Search all 22 content types at once. Returns results tagged with `entityType`. |
 
 DM calculators (CR calculator, encounter builder, loot generator, CR scaling) are added in Phase 4.
 
