@@ -39,25 +39,25 @@ TDD METHODOLOGY:
    - Behavioral tests: named after user intents (e.g. "find monsters in the nine hells"), use realistic 5etools-shaped mock data, test the full search pipeline end-to-end
 
 FILE ORGANIZATION:
-7. Test files in tests/ directory (mirroring src/ structure)?
-8. Source files in src/ directory?
-9. No files created in root folder (except config files)?
+8. Test files in tests/ directory (mirroring src/ structure)?
+9. Source files in src/ directory?
+10. No files created in root folder (except config files)?
 
 DOCUMENTATION:
-10. Does README.md reflect the current tool surface (new tools listed, phases accurate)?
-11. Does AGENTS.md reflect any new workflow rules introduced in this change?
-12. If a new content type, tool, or capability was added — is it documented?
+11. Does README.md reflect the current tool surface (new tools listed, phases accurate)?
+12. Does AGENTS.md reflect any new workflow rules introduced in this change?
+13. If a new content type, tool, or capability was added — is it documented?
 
 CODE QUALITY:
-13. DRY principle followed?
-14. Files under 500 lines?
-15. .js extensions in all ESM imports?
-16. Read files before editing them?
-17. Prefer editing existing files over creating new ones?
+14. DRY principle followed?
+15. Files under 500 lines?
+16. .js extensions in all ESM imports?
+17. Read files before editing them?
+18. Prefer editing existing files over creating new ones?
 
 SECURITY:
-15. No secrets or .env files staged?
-16. No credentials in source code?
+19. No secrets or .env files staged?
+20. No credentials in source code?
 17. GITHUB_TOKEN only read from env, never hardcoded?
 
 DEPENDENCIES:
