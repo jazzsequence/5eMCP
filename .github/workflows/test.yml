@@ -1,0 +1,128 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+env:
+  PANTHEON_SITE_NAME: cxr-5e-mcp
+
+jobs:
+  test:
+    name: Lint, typecheck, and unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Cache npm dependencies
+        uses: actions/cache@v5
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-node-
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+  pantheon:
+    name: Pantheon cache flush
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Setup PHP (required for Terminus)
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+
+      - name: Install and authenticate Terminus
+        uses: pantheon-systems/terminus-github-actions@v1
+        with:
+          pantheon-machine-token: ${{ secrets.PANTHEON_MACHINE_TOKEN }}
+
+      - name: Wait for Pantheon build and deployment
+        id: wait
+        continue-on-error: true
+        run: |
+          echo "Waiting for Pantheon deployment to complete..."
+          echo "Site: ${PANTHEON_SITE_NAME}.dev"
+
+          SITE_UUID=$(terminus site:info ${PANTHEON_SITE_NAME} --field=id)
+          echo "Site UUID: $SITE_UUID"
+
+          SESSION_RESPONSE=$(curl -s -X POST https://api.pantheon.io/v0/authorize/machine-token \
+            -H "Content-Type: application/json" \
+            -d "{\"machine_token\": \"${{ secrets.PANTHEON_MACHINE_TOKEN }}\", \"client\": \"github-actions\"}")
+
+          SESSION_TOKEN=$(echo "$SESSION_RESPONSE" | jq -r '.session')
+
+          if [ -z "$SESSION_TOKEN" ] || [ "$SESSION_TOKEN" == "null" ]; then
+            echo "Failed to get API session token"
+            echo "Response: $SESSION_RESPONSE"
+            exit 1
+          fi
+
+          echo "Authenticated with Pantheon API"
+
+          COMMIT_SHA="${{ github.sha }}"
+          echo "Looking for build matching commit: ${COMMIT_SHA:0:7}"
+
+          MAX_ATTEMPTS=60
+          SLEEP_TIME=10
+          ATTEMPT=0
+
+          while [ $ATTEMPT -lt $MAX_ATTEMPTS ]; do
+            ATTEMPT=$((ATTEMPT + 1))
+            echo "Check $ATTEMPT of $MAX_ATTEMPTS..."
+
+            BUILDS_RESPONSE=$(curl -s \
+              "https://terminus.pantheon.io/api/sites/${SITE_UUID}/environment/dev/build/list?limit=10" \
+              -H "X-Pantheon-Session: $SESSION_TOKEN")
+
+            if ! echo "$BUILDS_RESPONSE" | jq empty 2>/dev/null; then
+              echo "Invalid JSON response, retrying..."
+              sleep $SLEEP_TIME
+              continue
+            fi
+
+            BUILD=$(echo "$BUILDS_RESPONSE" | jq -r ".[] | select(.commit == \"$COMMIT_SHA\")")
+
+            if [ -z "$BUILD" ] || [ "$BUILD" == "null" ]; then
+              echo "No build found yet for ${COMMIT_SHA:0:7}"
+              sleep $SLEEP_TIME
+              continue
+            fi
+
+            BUILD_STATUS=$(echo "$BUILD" | jq -r '.status')
+            echo "Status: $BUILD_STATUS"
+
+            if [ "$BUILD_STATUS" == "DEPLOYMENT_SUCCESS" ] || [ "$BUILD_STATUS" == "BUILD_SUCCESS" ]; then
+              echo "Build and deployment successful"
+              exit 0
+            elif [[ "$BUILD_STATUS" == *"FAILURE"* ]]; then
+              echo "Build or deployment failed (status: $BUILD_STATUS)"
+              exit 1
+            fi
+
+            sleep $SLEEP_TIME
+          done
+
+          echo "Timeout after 10 minutes"
+          exit 1
+
+      # Flush runs unconditionally — if the build is broken the flush is a
+      # no-op, but when it recovers we don't want stale CDN content.
+      - name: Clear Pantheon CDN cache
+        run: |
+          terminus env:clear-cache ${PANTHEON_SITE_NAME}.dev
+          echo "Cache cleared"
