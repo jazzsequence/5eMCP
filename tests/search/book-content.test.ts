@@ -128,7 +128,7 @@ describe("getBookContent", () => {
     expect(result?.sections).toContain("Welcome to Strixhaven");
     expect(result?.sections).toContain("Life at Strixhaven");
     expect(result?.sections).toContain("School Is in Session");
-    expect(result?.content).toBeUndefined();
+    expect(result).not.toHaveProperty("text");
   });
 
   it("returns TOC for adventure content files (e.g. SCC-CK)", async () => {
@@ -148,13 +148,20 @@ describe("getBookContent", () => {
 
   // ── Section filter mode ───────────────────────────────────────────────────
 
-  it("returns section content when section filter matches a top-level section", async () => {
+  it("returns rendered markdown text when section filter matches a top-level section", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
     const result = await getBookContent("SCC", "Welcome to Strixhaven", "2024");
     expect(result).not.toBeNull();
     expect(result?.section).toBe("Welcome to Strixhaven");
-    expect(result?.content).toBeDefined();
-    expect(result?.sections).toBeUndefined();
+    expect(result?.text).toBeDefined();
+    expect(typeof result?.text).toBe("string");
+    expect(result).not.toHaveProperty("sections");
+  });
+
+  it("rendered text contains the section prose", async () => {
+    mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
+    const result = await getBookContent("SCC", "Welcome to Strixhaven", "2024");
+    expect(result?.text).toContain("Welcome text.");
   });
 
   it("finds deeply nested sections (e.g. Relationships inside School Is in Session)", async () => {
@@ -162,7 +169,13 @@ describe("getBookContent", () => {
     const result = await getBookContent("SCC", "Relationships", "2024");
     expect(result).not.toBeNull();
     expect(result?.section).toBe("Relationships");
-    expect(result?.content).toBeDefined();
+    expect(result?.text).toBeDefined();
+  });
+
+  it("rendered text for nested section includes sub-section headings", async () => {
+    mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
+    const result = await getBookContent("SCC", "Relationships", "2024");
+    expect(result?.text).toContain("Making Friends and Rivals");
   });
 
   it("finds nested sections inside top-level sections (e.g. Lorehold College)", async () => {
@@ -207,9 +220,9 @@ describe("getBookContent", () => {
     expect(result).toBeNull();
   });
 
-  // ── Translation ───────────────────────────────────────────────────────────
+  // ── Rendering ─────────────────────────────────────────────────────────────
 
-  it("resolves {@tags} in section content", async () => {
+  it("resolves {@tags} in rendered text", async () => {
     const dataWithTags = {
       data: [{
         type: "section",
@@ -219,11 +232,10 @@ describe("getBookContent", () => {
     };
     mockFetchRaw.mockResolvedValueOnce(dataWithTags);
     const result = await getBookContent("SCC", "Tagged Section", "2024");
-    const entries = (result?.content as Record<string, unknown>)?.entries as string[];
-    expect(entries[0]).toBe("**bold text**");
+    expect(result?.text).toContain("**bold text**");
   });
 
-  it("strips internal fields from section content", async () => {
+  it("strips internal fields from rendered text", async () => {
     const dataWithInternal = {
       data: [{
         type: "section",
@@ -234,6 +246,7 @@ describe("getBookContent", () => {
     };
     mockFetchRaw.mockResolvedValueOnce(dataWithInternal);
     const result = await getBookContent("SCC", "Internal Section", "2024");
-    expect(result?.content).not.toHaveProperty("_internalField");
+    expect(result?.text).not.toContain("_internalField");
+    expect(result?.text).not.toContain("hidden");
   });
 });

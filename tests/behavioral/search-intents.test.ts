@@ -651,7 +651,8 @@ describe("user intent: get the relationship rules from Strixhaven", () => {
     const result = await getBookContent("SCC", "Relationships", "2024");
     expect(result).not.toBeNull();
     expect(result?.section).toBe("Relationships");
-    expect(result?.content).toBeDefined();
+    expect(result?.text).toBeDefined();
+    expect(typeof result?.text).toBe("string");
   });
 
   it("returns TOC listing chapter names when no section is specified", async () => {
@@ -747,6 +748,7 @@ describe("user intent: get the Campus Kerfuffle adventure from Strixhaven", () =
     const result = await getBookContent("SCC-CK", "Running This Adventure", "2024");
     expect(result).not.toBeNull();
     expect(result?.section).toBe("Running This Adventure");
-    expect(result?.content).toBeDefined();
+    expect(result?.text).toBeDefined();
+    expect(typeof result?.text).toBe("string");
   });
 });

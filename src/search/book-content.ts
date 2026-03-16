@@ -2,6 +2,7 @@ import { getManifest } from "../manifest/refresh.js";
 import { fetchRaw } from "../github.js";
 import { stripInternalFields } from "../translation/strip.js";
 import { resolveTagsDeep } from "../translation/tags.js";
+import { renderEntriesToMarkdown } from "../translation/render.js";
 import type { Ruleset } from "../types.js";
 
 type SectionNode = {
@@ -36,14 +37,14 @@ function findSection(nodes: unknown[], filter: string): SectionNode | null {
 }
 
 export type BookContentResult =
-  | { source: string; sections: string[]; content?: never; section?: never; error?: never }
-  | { source: string; section: string; content: unknown; sections?: never; error?: never }
-  | { source: string; error: string; sections: string[]; content?: never; section?: never };
+  | { source: string; sections: string[]; text?: never; section?: never; error?: never }
+  | { source: string; section: string; text: string; sections?: never; error?: never }
+  | { source: string; error: string; sections: string[]; text?: never; section?: never };
 
 /**
  * Fetches content from a book or adventure source by abbreviation.
  * - No section filter → returns TOC (list of top-level section names).
- * - Section filter provided → returns that section's content.
+ * - Section filter provided → returns rendered markdown text of that section.
  * - Section not found → returns error + available sections.
  * Searches manifest.content.book first, then manifest.content.adventure.
  */
@@ -69,10 +70,11 @@ export async function getBookContent(
 
   const data = await fetchRaw(file.url) as Record<string, unknown>;
   const rawData = (data["data"] ?? []) as SectionNode[];
+  const resolvedSource = typeof file.source === "string" ? file.source : source.toUpperCase();
 
   if (!section) {
     return {
-      source: typeof file.source === "string" ? file.source : source.toUpperCase(),
+      source: resolvedSource,
       sections: collectTopLevelSections(rawData),
     };
   }
@@ -80,18 +82,20 @@ export async function getBookContent(
   const found = findSection(rawData, section);
   if (!found) {
     return {
-      source: typeof file.source === "string" ? file.source : source.toUpperCase(),
+      source: resolvedSource,
       error: `Section "${section}" not found in ${source.toUpperCase()}`,
       sections: collectTopLevelSections(rawData),
     };
   }
 
-  const stripped = stripInternalFields(found);
-  const resolved = resolveTagsDeep(stripped);
+  const stripped = stripInternalFields(found) as SectionNode;
+  const resolved = resolveTagsDeep(stripped) as SectionNode;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const text = renderEntriesToMarkdown((resolved.entries ?? []) as any);
 
   return {
-    source: typeof file.source === "string" ? file.source : source.toUpperCase(),
+    source: resolvedSource,
     section: found.name as string,
-    content: resolved,
+    text,
   };
 }
