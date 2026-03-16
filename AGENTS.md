@@ -40,12 +40,17 @@ FILE ORGANIZATION:
 8. Source files in src/ directory?
 9. No files created in root folder (except config files)?
 
+DOCUMENTATION:
+10. Does README.md reflect the current tool surface (new tools listed, phases accurate)?
+11. Does AGENTS.md reflect any new workflow rules introduced in this change?
+12. If a new content type, tool, or capability was added — is it documented?
+
 CODE QUALITY:
-10. DRY principle followed?
-11. Files under 500 lines?
-12. .js extensions in all ESM imports?
-13. Read files before editing them?
-14. Prefer editing existing files over creating new ones?
+13. DRY principle followed?
+14. Files under 500 lines?
+15. .js extensions in all ESM imports?
+16. Read files before editing them?
+17. Prefer editing existing files over creating new ones?
 
 SECURITY:
 15. No secrets or .env files staged?

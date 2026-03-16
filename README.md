@@ -84,17 +84,59 @@ Add to `~/.claude.json`:
 }
 ```
 
-## Available Tools (Phase 1)
+## Available Tools
 
-Phase 1 implements the manifest core and universal passthrough:
-
+### Meta Tools
 | Tool | Description |
 |---|---|
-| `fetch_content` | Fetch and translate any file in the manifest by content type + file name. Use for unknown types or direct manifest access. |
 | `manifest_status` | Build time, file counts by type, unknown types discovered. |
 | `list_sources` | All source abbreviations with content types. |
+| `fetch_content` | Fetch and translate any file in the manifest by content type + file name. Universal fallback for any content type. |
 
-Full tool surface (spells, bestiary, items, books, adventures, homebrew, calculators) is added in Phases 2–4.
+### Search Tools (`*_search`)
+All search tools accept `query` (name substring), `ruleset` (`"2024"` or `"2014"`), and `limit`. Results match on name, source abbreviation, and setting/pantheon fields.
+
+| Tool | Content |
+|---|---|
+| `spell_search` | Spells |
+| `monster_search` | Monsters and creatures |
+| `item_search` | Magic and mundane items |
+| `race_search` | Playable species / races |
+| `background_search` | Character backgrounds |
+| `feat_search` | Feats |
+| `condition_search` | Conditions and diseases |
+| `vehicle_search` | Vehicles and vessels |
+| `object_search` | Objects |
+| `trap_search` | Traps and hazards |
+| `psionic_search` | Psionic powers and disciplines |
+| `deck_search` | Decks (e.g. Deck of Many Things) |
+| `reward_search` | Supernatural gifts and boons |
+| `optfeature_search` | Optional class features and invocations |
+| `table_search` | Random tables |
+| `variantrule_search` | Variant rules |
+| `deity_search` | Deities and gods (searchable by pantheon/setting) |
+| `language_search` | Languages |
+| `skill_search` | Skills |
+| `sense_search` | Senses (darkvision, tremorsense, etc.) |
+
+### Get Tools (`*_get`)
+Exact lookup by name with full fluff/description merged in. Accept `name`, optional `source`, and `ruleset`.
+
+| Tool | Content |
+|---|---|
+| `spell_get` | Full spell entry with description |
+| `monster_get` | Full stat block with lore |
+| `item_get` | Full item entry with description |
+| `race_get` | Full race entry with traits and fluff |
+| `background_get` | Full background entry with fluff |
+| `feat_get` | Full feat entry |
+
+### Omnisearch
+| Tool | Description |
+|---|---|
+| `omnisearch` | Search all 20 content types at once. Returns results tagged with `entityType`. |
+
+Books, adventures, homebrew, and DM calculators (CR calculator, encounter builder, loot generator, CR scaling) are added in Phases 3–4.
 
 ## Environment Variables
 
