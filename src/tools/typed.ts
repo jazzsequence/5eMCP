@@ -6,6 +6,23 @@ import { getEntry } from "../search/get-entry.js";
 const RulesetSchema = z.enum(["2024", "2014"]).default("2024");
 const DEFAULT_LIMIT = 20;
 
+/** Maps full spell school names to 5etools single-letter abbreviations. */
+const SPELL_SCHOOL_MAP: Record<string, string> = {
+  abjuration: "A",
+  conjuration: "C",
+  divination: "D",
+  enchantment: "E",
+  evocation: "V",
+  illusion: "I",
+  necromancy: "N",
+  transmutation: "T",
+};
+
+interface FilterSpec {
+  schema: Record<string, z.ZodTypeAny>;
+  build: (params: Record<string, unknown>) => Record<string, unknown>;
+}
+
 interface ContentToolConfig {
   /** Singular noun for the content type (e.g. "spell") */
   noun: string;
@@ -15,12 +32,77 @@ interface ContentToolConfig {
   description: string;
   /** Whether to register a _get tool in addition to _search */
   hasGet?: boolean;
+  /** Optional structured filter parameters for the _search tool */
+  filters?: FilterSpec;
 }
 
 const CONTENT_TOOLS: ContentToolConfig[] = [
-  { noun: "spell", folder: "spells", description: "D&D 5e spell", hasGet: true },
-  { noun: "monster", folder: "bestiary", description: "D&D 5e monster or creature", hasGet: true },
-  { noun: "item", folder: "items", description: "D&D 5e magic or mundane item", hasGet: true },
+  {
+    noun: "spell",
+    folder: "spells",
+    description: "D&D 5e spell",
+    hasGet: true,
+    filters: {
+      schema: {
+        level: z.number().int().min(0).max(9).optional().describe("Filter by spell level (0–9)"),
+        school: z.string().optional().describe(
+          "Filter by school of magic: abjuration, conjuration, divination, enchantment, evocation, illusion, necromancy, transmutation",
+        ),
+      },
+      build: ({ level, school }) => {
+        const filters: Record<string, unknown> = {};
+        if (level !== undefined) filters.level = level as number;
+        if (typeof school === "string" && school) {
+          filters.school = SPELL_SCHOOL_MAP[school.toLowerCase()] ?? school;
+        }
+        return filters;
+      },
+    },
+  },
+  {
+    noun: "monster",
+    folder: "bestiary",
+    description: "D&D 5e monster or creature",
+    hasGet: true,
+    filters: {
+      schema: {
+        type: z.string().optional().describe(
+          "Filter by creature type (e.g. beast, humanoid, undead, dragon, fiend)",
+        ),
+        cr_max: z.string().optional().describe(
+          "Filter by maximum challenge rating inclusive (e.g. '1/4', '1/2', '5', '20')",
+        ),
+      },
+      build: ({ type, cr_max }) => {
+        const filters: Record<string, unknown> = {};
+        if (typeof type === "string" && type) filters.type = type;
+        if (typeof cr_max === "string" && cr_max) filters.cr_max = cr_max;
+        return filters;
+      },
+    },
+  },
+  {
+    noun: "item",
+    folder: "items",
+    description: "D&D 5e magic or mundane item",
+    hasGet: true,
+    filters: {
+      schema: {
+        rarity: z.string().optional().describe(
+          "Filter by rarity: common, uncommon, rare, very rare, legendary, artifact",
+        ),
+        type: z.string().optional().describe(
+          "Filter by item type (e.g. weapon, armor, wondrous, potion, ring, rod, staff, wand)",
+        ),
+      },
+      build: ({ rarity, type }) => {
+        const filters: Record<string, unknown> = {};
+        if (typeof rarity === "string" && rarity) filters.rarity = rarity;
+        if (typeof type === "string" && type) filters.type = type;
+        return filters;
+      },
+    },
+  },
   { noun: "condition", folder: "conditionsdiseases", description: "D&D 5e condition or disease" },
   { noun: "vehicle", folder: "vehicles", description: "D&D 5e vehicle or vessel" },
   { noun: "object", folder: "objects", description: "D&D 5e object" },
@@ -42,19 +124,29 @@ const CONTENT_TOOLS: ContentToolConfig[] = [
 
 export function registerTypedTools(server: McpServer): void {
   for (const config of CONTENT_TOOLS) {
-    const { noun, folder, description, hasGet } = config;
+    const { noun, folder, description, hasGet, filters } = config;
 
     // Search tool
+    const searchSchema = {
+      query: z.string().describe(`Name or partial name to search for`),
+      ruleset: RulesetSchema.describe("Which ruleset to search"),
+      limit: z.number().int().min(1).max(100).default(DEFAULT_LIMIT).describe("Max results to return"),
+      ...(filters?.schema ?? {}),
+    };
+
     server.tool(
       `${noun}_search`,
       `Search ${description}s by name. Returns a list of matching entries.`,
-      {
-        query: z.string().describe(`Name or partial name to search for`),
-        ruleset: RulesetSchema.describe("Which ruleset to search"),
-        limit: z.number().int().min(1).max(100).default(DEFAULT_LIMIT).describe("Max results to return"),
-      },
-      async ({ query, ruleset, limit }) => {
-        const results = await searchContentType(folder, query, ruleset as "2024" | "2014", limit);
+      searchSchema,
+      async (params) => {
+        const { query, ruleset, limit, ...rest } = params as {
+          query: string;
+          ruleset: "2024" | "2014";
+          limit: number;
+          [key: string]: unknown;
+        };
+        const builtFilters = filters?.build(rest) ?? {};
+        const results = await searchContentType(folder, query, ruleset, limit, builtFilters);
         return {
           content: [{ type: "text", text: JSON.stringify(results, null, 2) }],
         };

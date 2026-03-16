@@ -206,7 +206,82 @@ describe("user intent: find weapons with the finesse property", () => {
   });
 });
 
-// ─── Scenario G: no deep recursion into nested entries ───────────────────────
+// ─── Scenario G (filters): "level 3 fire spells" ─────────────────────────────
+
+describe("user intent: find 3rd level fire spells", () => {
+  it("returns only level 3 spells that deal fire damage", async () => {
+    mockGetManifest.mockResolvedValue(makeManifest("spells", "spells-phb.json") as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      spell: [
+        { name: "Fireball", source: "PHB", level: 3, school: "V", damageInflict: ["fire"] },
+        { name: "Scorching Ray", source: "PHB", level: 2, school: "V", damageInflict: ["fire"] },
+        { name: "Wall of Ice", source: "PHB", level: 6, school: "V", damageInflict: ["cold"] },
+        { name: "Fly", source: "PHB", level: 3, school: "T" },
+      ],
+    });
+
+    const results = await searchContentType("spells", "fire", "2024", 20, { level: 3 });
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Fireball");
+    expect(names).not.toContain("Scorching Ray");   // wrong level
+    expect(names).not.toContain("Wall of Ice");     // wrong damage type
+    expect(names).not.toContain("Fly");             // no fire damage
+  });
+});
+
+// ─── Scenario H (filters): "wild shape forms for a 5th level druid" ──────────
+
+describe("user intent: find wild shape forms for a 5th-level druid", () => {
+  it("returns beasts with CR at most 1/2 (5th-level druid limit)", async () => {
+    mockGetManifest.mockResolvedValue(makeManifest("bestiary", "bestiary-mm.json") as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      monster: [
+        { name: "Wolf", source: "MM", type: "beast", cr: "1/4" },
+        { name: "Black Bear", source: "MM", type: "beast", cr: "1/2" },
+        { name: "Brown Bear", source: "MM", type: "beast", cr: "1" },
+        { name: "Goblin", source: "MM", type: "humanoid", cr: "1/4" },
+        { name: "Giant Eagle", source: "MM", type: "beast", cr: "1" },
+      ],
+    });
+
+    // Level 5 druid: CR ≤ 1/2, beast type only
+    const results = await searchContentType("bestiary", "", "2024", 20, {
+      type: "beast",
+      cr_max: "1/2",
+    });
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Wolf");
+    expect(names).toContain("Black Bear");
+    expect(names).not.toContain("Brown Bear");   // CR 1 exceeds limit
+    expect(names).not.toContain("Goblin");       // not a beast
+    expect(names).not.toContain("Giant Eagle");  // CR 1 exceeds limit
+  });
+});
+
+// ─── Scenario I (filters): "legendary items" ─────────────────────────────────
+
+describe("user intent: find legendary magic items", () => {
+  it("returns only items with rarity 'legendary'", async () => {
+    mockGetManifest.mockResolvedValue(makeManifest("items", "items.json") as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      item: [
+        { name: "Vorpal Sword", source: "DMG", rarity: "legendary" },
+        { name: "Cloak of Invisibility", source: "DMG", rarity: "legendary" },
+        { name: "Flame Tongue", source: "DMG", rarity: "rare" },
+        { name: "Bag of Holding", source: "PHB", rarity: "uncommon" },
+      ],
+    });
+
+    const results = await searchContentType("items", "", "2024", 20, { rarity: "legendary" });
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Vorpal Sword");
+    expect(names).toContain("Cloak of Invisibility");
+    expect(names).not.toContain("Flame Tongue");
+    expect(names).not.toContain("Bag of Holding");
+  });
+});
+
+// ─── Scenario J: no deep recursion into nested entries ───────────────────────
 
 describe("user intent: search does not match deeply nested text", () => {
   it("does not return a monster just because 'fire' appears inside an action description", async () => {

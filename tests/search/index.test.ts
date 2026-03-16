@@ -216,4 +216,73 @@ describe("searchContentType", () => {
     const results = await searchContentType("items", "finesse", "2024");
     expect(results).toHaveLength(0);
   });
+
+  // Structured filters
+  it("filters by exact numeric field (level)", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      spell: [
+        { name: "Fireball", source: "PHB", level: 3 },
+        { name: "Magic Missile", source: "PHB", level: 1 },
+      ],
+    });
+    mockFetchRaw.mockResolvedValueOnce({ spell: [] });
+    const results = await searchContentType("spells", "", "2024", 20, { level: 3 });
+    expect(results.map((r) => r.name)).toContain("Fireball");
+    expect(results.map((r) => r.name)).not.toContain("Magic Missile");
+  });
+
+  it("filters by string substring field (rarity)", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      item: [
+        { name: "Sword of Legend", source: "DMG", rarity: "legendary" },
+        { name: "Potion of Healing", source: "PHB", rarity: "common" },
+      ],
+    });
+    const results = await searchContentType("items", "", "2024", 20, { rarity: "legendary" });
+    expect(results.map((r) => r.name)).toContain("Sword of Legend");
+    expect(results.map((r) => r.name)).not.toContain("Potion of Healing");
+  });
+
+  it("filters by cr_max (fractional CR support)", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      monster: [
+        { name: "Wolf", source: "MM", type: "beast", cr: "1/4" },
+        { name: "Brown Bear", source: "MM", type: "beast", cr: "1" },
+        { name: "Giant Ape", source: "MM", type: "beast", cr: "7" },
+      ],
+    });
+    const results = await searchContentType("bestiary", "", "2024", 20, { cr_max: "1/2" });
+    expect(results.map((r) => r.name)).toContain("Wolf");
+    expect(results.map((r) => r.name)).not.toContain("Brown Bear");
+    expect(results.map((r) => r.name)).not.toContain("Giant Ape");
+  });
+
+  it("filters monster type handling nested type objects", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      monster: [
+        { name: "Goblin", source: "MM", type: "humanoid" },
+        { name: "Doppelganger", source: "MM", type: { type: "monstrosity", tags: ["shapechanger"] } },
+        { name: "Wolf", source: "MM", type: "beast" },
+      ],
+    });
+    const results = await searchContentType("bestiary", "", "2024", 20, { type: "humanoid" });
+    expect(results.map((r) => r.name)).toContain("Goblin");
+    expect(results.map((r) => r.name)).not.toContain("Doppelganger");
+    expect(results.map((r) => r.name)).not.toContain("Wolf");
+  });
+
+  it("combines query and filters (AND logic)", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      spell: [
+        { name: "Fireball", source: "PHB", level: 3, damageInflict: ["fire"] },
+        { name: "Scorching Ray", source: "PHB", level: 2, damageInflict: ["fire"] },
+        { name: "Wall of Ice", source: "PHB", level: 6, damageInflict: ["cold"] },
+      ],
+    });
+    mockFetchRaw.mockResolvedValueOnce({ spell: [] });
+    const results = await searchContentType("spells", "fire", "2024", 20, { level: 3 });
+    expect(results.map((r) => r.name)).toContain("Fireball");
+    expect(results.map((r) => r.name)).not.toContain("Scorching Ray");
+    expect(results.map((r) => r.name)).not.toContain("Wall of Ice");
+  });
 });

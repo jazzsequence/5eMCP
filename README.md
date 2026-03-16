@@ -96,6 +96,14 @@ Add to `~/.claude.json`:
 ### Search Tools (`*_search`)
 All search tools accept `query` (name substring), `ruleset` (`"2024"` or `"2014"`), and `limit`. Results match on name, source abbreviation, pantheon/setting, and any top-level array-of-strings field in the data (e.g. `damageInflict`, `conditionInflict`, `environment`, `property` tags like `"Vst|EGW"`).
 
+Selected tools support additional structured filter parameters:
+
+| Tool | Extra Parameters |
+|---|---|
+| `spell_search` | `level` (int 0–9), `school` (full name: evocation, necromancy, etc.) |
+| `monster_search` | `type` (beast, humanoid, undead…), `cr_max` (max CR inclusive: "1/4", "1/2", "5"…) |
+| `item_search` | `rarity` (common, uncommon, rare, very rare, legendary, artifact), `type` (weapon, armor, wondrous…) |
+
 | Tool | Content |
 |---|---|
 | `spell_search` | Spells |

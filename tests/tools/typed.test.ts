@@ -177,7 +177,39 @@ describe("registerTypedTools", () => {
     registerTypedTools(server);
     const [, , , handler] = tools["spell_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     await handler({ query: "fire", ruleset: "2024", limit: 10 });
-    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10);
+    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10, {});
+  });
+
+  it("spell_search passes level filter to searchContentType", async () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    const [, , , handler] = tools["spell_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
+    await handler({ query: "fire", ruleset: "2024", limit: 10, level: 3 });
+    expect(mockSearch).toHaveBeenCalledWith("spells", "fire", "2024", 10, { level: 3 });
+  });
+
+  it("spell_search passes school filter mapped to abbreviation", async () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    const [, , , handler] = tools["spell_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
+    await handler({ query: "", ruleset: "2024", limit: 20, school: "evocation" });
+    expect(mockSearch).toHaveBeenCalledWith("spells", "", "2024", 20, { school: "V" });
+  });
+
+  it("monster_search passes type and cr_max filters", async () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    const [, , , handler] = tools["monster_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
+    await handler({ query: "", ruleset: "2024", limit: 20, type: "beast", cr_max: "1/2" });
+    expect(mockSearch).toHaveBeenCalledWith("bestiary", "", "2024", 20, { type: "beast", cr_max: "1/2" });
+  });
+
+  it("item_search passes rarity filter", async () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    const [, , , handler] = tools["item_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
+    await handler({ query: "", ruleset: "2024", limit: 20, rarity: "legendary" });
+    expect(mockSearch).toHaveBeenCalledWith("items", "", "2024", 20, { rarity: "legendary" });
   });
 
   it("spell_get calls getEntry with correct args", async () => {

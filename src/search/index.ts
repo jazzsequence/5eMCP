@@ -8,6 +8,49 @@ import type { Ruleset } from "../types.js";
 /** Fields checked for query matches in addition to name. */
 const SEARCHABLE_FIELDS = ["source", "pantheon"] as const;
 
+/** Parses a CR string ("1/4", "1/2", "5", etc.) to a number for comparison. */
+function parseCR(cr: unknown): number {
+  if (typeof cr !== "string") return NaN;
+  if (cr.includes("/")) {
+    const [num, den] = cr.split("/").map(Number);
+    return num / den;
+  }
+  return Number(cr);
+}
+
+/** Extracts the type string from a 5etools monster type field (string or nested object). */
+function extractType(val: unknown): string {
+  if (typeof val === "string") return val;
+  if (typeof val === "object" && val !== null && "type" in val) {
+    const nested = (val as Record<string, unknown>).type;
+    return typeof nested === "string" ? nested : "";
+  }
+  return "";
+}
+
+/**
+ * Returns true if the entry passes all structured filters.
+ * Supports: exact number match, string substring match, cr_max range, and type extraction.
+ */
+function entryMatchesFilters(entry: Record<string, unknown>, filters: Record<string, unknown>): boolean {
+  for (const [key, value] of Object.entries(filters)) {
+    if (key === "cr_max") {
+      const max = parseCR(value);
+      const entryCR = parseCR(entry.cr);
+      if (isNaN(entryCR) || entryCR > max) return false;
+    } else if (key === "type") {
+      const entryType = extractType(entry.type);
+      if (!entryType.toLowerCase().includes((value as string).toLowerCase())) return false;
+    } else if (typeof value === "number") {
+      if (entry[key] !== value) return false;
+    } else if (typeof value === "string") {
+      const entryVal = entry[key];
+      if (typeof entryVal !== "string" || !entryVal.toLowerCase().includes(value.toLowerCase())) return false;
+    }
+  }
+  return true;
+}
+
 /** Returns true if any searchable field on the entry contains the query string. */
 function entryMatchesQuery(entry: Record<string, unknown>, lowerQuery: string): boolean {
   // Check named string fields first (name, source, pantheon)
@@ -35,6 +78,7 @@ export async function searchContentType(
   query: string,
   ruleset: Ruleset,
   limit = 20,
+  filters: Record<string, unknown> = {},
 ): Promise<Record<string, unknown>[]> {
   const manifest = await getManifest(ruleset);
   const files = manifest.content[contentTypeFolder];
@@ -56,7 +100,7 @@ export async function searchContentType(
 
     for (const entry of entries as Record<string, unknown>[]) {
       if (results.length >= limit) break;
-      if (!lowerQuery || entryMatchesQuery(entry, lowerQuery)) {
+      if ((!lowerQuery || entryMatchesQuery(entry, lowerQuery)) && entryMatchesFilters(entry, filters)) {
         const translated = resolveTagsDeep(stripInternalFields(entry)) as Record<string, unknown>;
         results.push(translated);
       }
