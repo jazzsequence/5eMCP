@@ -40,7 +40,15 @@ describe("registerOmnisearchTool", () => {
     registerOmnisearchTool(server);
     const [, , , handler] = tools["omnisearch"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
     await handler({ query: "fire", ruleset: "2024" });
-    expect(mockOmnisearch).toHaveBeenCalledWith("fire", "2024", expect.any(Number));
+    expect(mockOmnisearch).toHaveBeenCalledWith("fire", "2024", expect.any(Number), expect.any(Boolean));
+  });
+
+  it("passes include_homebrew=true when set", async () => {
+    const { server, tools } = makeServer();
+    registerOmnisearchTool(server);
+    const [, , , handler] = tools["omnisearch"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
+    await handler({ query: "blood hunter", ruleset: "2014", include_homebrew: true });
+    expect(mockOmnisearch).toHaveBeenCalledWith("blood hunter", "2014", expect.any(Number), true);
   });
 
   it("returns results as JSON text with counts", async () => {

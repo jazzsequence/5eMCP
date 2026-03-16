@@ -434,6 +434,42 @@ describe("user intent: find available sourcebooks", () => {
   });
 });
 
+// ─── Scenario O: homebrew class search via omnisearch ────────────────────────
+
+describe("user intent: find the blood hunter class", () => {
+  it("returns homebrew class when searching with include_homebrew=true", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2014" as const,
+      built_at: Date.now(),
+      content: { class: [] },
+      homebrew: {
+        class: [{ name: "Matthew Mercer; Blood Hunter (2022).json", path: "class/Matthew Mercer; Blood Hunter (2022).json", url: "https://raw.example.com/blood-hunter.json", sha: "bh1" }],
+      },
+    } as never);
+
+    mockFetchRaw.mockResolvedValueOnce({
+      class: [{ name: "Blood Hunter", source: "BH2022", hd: { number: 1, faces: 10 } }],
+    });
+
+    const results = await searchContentType("class", "blood hunter", "2014", 20, {}, undefined, true);
+    expect(results.map((r) => r.name)).toContain("Blood Hunter");
+  });
+
+  it("returns empty when searching classes without include_homebrew (official only)", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2014" as const,
+      built_at: Date.now(),
+      content: { class: [] },  // no official blood hunter
+      homebrew: {
+        class: [{ name: "Matthew Mercer; Blood Hunter (2022).json", path: "class/Matthew Mercer; Blood Hunter (2022).json", url: "https://raw.example.com/blood-hunter.json", sha: "bh1" }],
+      },
+    } as never);
+
+    const results = await searchContentType("class", "blood hunter", "2014");
+    expect(results).toHaveLength(0);
+  });
+});
+
 // ─── Scenario J: no deep recursion into nested entries ───────────────────────
 
 describe("user intent: search does not match deeply nested text", () => {

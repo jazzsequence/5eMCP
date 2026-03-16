@@ -25,6 +25,8 @@ export const CONTENT_KEY_MAP: Record<string, string> = {
   senses: "sense",
   books: "book",
   adventures: "adventure",
+  class: "class",
+  subclass: "subclass",
 };
 
 /**

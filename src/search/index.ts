@@ -120,11 +120,11 @@ export async function searchContentType(
   include_homebrew = false,
 ): Promise<Record<string, unknown>[]> {
   const manifest = await getManifest(ruleset);
-  const files = manifest.content[contentTypeFolder];
-  if (!files || files.length === 0) return [];
 
   const contentKey = CONTENT_KEY_MAP[contentTypeFolder];
   if (!contentKey) return [];
+
+  const files = manifest.content[contentTypeFolder] ?? [];
 
   const lowerQuery = query.toLowerCase();
   const results: Record<string, unknown>[] = [];

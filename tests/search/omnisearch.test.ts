@@ -45,8 +45,40 @@ describe("omnisearch", () => {
     mockSearch.mockResolvedValue(manySpells);
 
     const results = await omnisearch("spell", "2024");
-    // With 22 content types each returning up to 5 results by default, max = 110
-    expect(results.length).toBeLessThanOrEqual(110);
+    // With 24 content types each returning up to 5 results by default, max = 120
+    expect(results.length).toBeLessThanOrEqual(120);
+  });
+
+  it("passes include_homebrew to searchContentType", async () => {
+    mockSearch.mockResolvedValue([]);
+    await omnisearch("blood hunter", "2014", 5, true);
+    // Every folder search should have been called with include_homebrew=true
+    const calls = mockSearch.mock.calls;
+    expect(calls.length).toBeGreaterThan(0);
+    for (const call of calls) {
+      expect(call[6]).toBe(true);
+    }
+  });
+
+  it("uses include_homebrew=true by default", async () => {
+    mockSearch.mockResolvedValue([]);
+    await omnisearch("test", "2024");
+    const calls = mockSearch.mock.calls;
+    expect(calls.length).toBeGreaterThan(0);
+    for (const call of calls) {
+      expect(call[6]).toBe(true);
+    }
+  });
+
+  it("tags class results with entityType class", async () => {
+    mockSearch.mockImplementation(async (folder) => {
+      if (folder === "class") return [{ name: "Blood Hunter", source: "BH2022" }];
+      return [];
+    });
+    const results = await omnisearch("blood hunter", "2014");
+    const bh = results.find((r) => r.name === "Blood Hunter");
+    expect(bh).toBeDefined();
+    expect(bh!.entityType).toBe("class");
   });
 
   it("returns empty array when nothing matches", async () => {

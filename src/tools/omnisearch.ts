@@ -24,9 +24,12 @@ export function registerOmnisearchTool(server: McpServer): void {
         .max(20)
         .default(DEFAULT_PER_TYPE)
         .describe("Max results per content type (default 5)"),
+      include_homebrew: z.boolean().default(true).describe(
+        "Include TheGiddyLimit/homebrew content in results (default true — homebrew classes, spells, etc. are included by default)",
+      ),
     },
-    async ({ query, ruleset, per_type_limit }) => {
-      const results = await omnisearch(query, ruleset as "2024" | "2014", per_type_limit ?? DEFAULT_PER_TYPE);
+    async ({ query, ruleset, per_type_limit, include_homebrew = true }) => {
+      const results = await omnisearch(query, ruleset as "2024" | "2014", per_type_limit ?? DEFAULT_PER_TYPE, include_homebrew);
 
       // Summarize by entity type
       const byType: Record<string, number> = {};

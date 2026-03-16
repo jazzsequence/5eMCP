@@ -126,6 +126,8 @@ const CONTENT_TOOLS: ContentToolConfig[] = [
   { noun: "sense", folder: "senses", description: "D&D 5e sense (e.g. darkvision, tremorsense)" },
   { noun: "book", folder: "books", description: "D&D 5e sourcebook", hasGet: true },
   { noun: "adventure", folder: "adventures", description: "D&D 5e published adventure", hasGet: true },
+  { noun: "class", folder: "class", description: "D&D 5e character class", hasGet: true },
+  { noun: "subclass", folder: "subclass", description: "D&D 5e subclass or archetype", hasGet: true },
 ];
 
 export function registerTypedTools(server: McpServer): void {

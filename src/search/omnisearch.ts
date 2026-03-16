@@ -17,6 +17,17 @@ const FOLDER_TO_NOUN: Record<string, string> = {
   optionalfeatures: "optfeature",
   tables: "table",
   variantrules: "variantrule",
+  races: "race",
+  backgrounds: "background",
+  feats: "feat",
+  deities: "deity",
+  languages: "language",
+  skills: "skill",
+  senses: "sense",
+  books: "book",
+  adventures: "adventure",
+  class: "class",
+  subclass: "subclass",
 };
 
 const PER_TYPE_LIMIT = 5;
@@ -25,18 +36,21 @@ const PER_TYPE_LIMIT = 5;
  * Searches all known content types simultaneously and merges results.
  * Each result gets an `entityType` field indicating its content type.
  * Content type errors are silently skipped so partial results are returned.
+ * Homebrew is included by default so results like the Blood Hunter class
+ * appear without requiring explicit flags.
  */
 export async function omnisearch(
   query: string,
   ruleset: Ruleset,
   perTypeLimit = PER_TYPE_LIMIT,
+  include_homebrew = true,
 ): Promise<Record<string, unknown>[]> {
   const folders = Object.keys(CONTENT_KEY_MAP);
 
   const settled = await Promise.allSettled(
     folders.map(async (folder) => {
       const noun = FOLDER_TO_NOUN[folder] ?? folder;
-      const entries = await searchContentType(folder, query, ruleset, perTypeLimit);
+      const entries = await searchContentType(folder, query, ruleset, perTypeLimit, {}, undefined, include_homebrew);
       return entries.slice(0, perTypeLimit).map((e) => ({ ...e, entityType: noun }));
     }),
   );

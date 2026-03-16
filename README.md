@@ -127,6 +127,8 @@ Selected tools support additional structured filter parameters:
 | `sense_search` | Senses (darkvision, tremorsense, etc.) |
 | `book_search` | Sourcebooks (name, ID, source, publication date) |
 | `adventure_search` | Published adventures |
+| `class_search` | Character classes (official + homebrew) |
+| `subclass_search` | Subclasses and archetypes |
 
 ### Get Tools (`*_get`)
 Exact lookup by name with full fluff/description merged in. Accept `name`, optional `source`, and `ruleset`.
@@ -141,11 +143,13 @@ Exact lookup by name with full fluff/description merged in. Accept `name`, optio
 | `feat_get` | Full feat entry |
 | `book_get` | Sourcebook metadata by name |
 | `adventure_get` | Adventure metadata by name |
+| `class_get` | Full class entry by name |
+| `subclass_get` | Full subclass entry by name |
 
 ### Omnisearch
 | Tool | Description |
 |---|---|
-| `omnisearch` | Search all 22 content types at once. Returns results tagged with `entityType`. |
+| `omnisearch` | Search all 24 content types at once. Returns results tagged with `entityType`. Accepts `include_homebrew` (default **true** — homebrew is included by default). |
 
 DM calculators (CR calculator, encounter builder, loot generator, CR scaling) are added in Phase 4.
 

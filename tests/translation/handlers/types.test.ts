@@ -86,6 +86,22 @@ describe("CONTENT_KEY_MAP", () => {
   it("maps senses to sense", () => {
     expect(CONTENT_KEY_MAP["senses"]).toBe("sense");
   });
+
+  it("maps books to book", () => {
+    expect(CONTENT_KEY_MAP["books"]).toBe("book");
+  });
+
+  it("maps adventures to adventure", () => {
+    expect(CONTENT_KEY_MAP["adventures"]).toBe("adventure");
+  });
+
+  it("maps class to class", () => {
+    expect(CONTENT_KEY_MAP["class"]).toBe("class");
+  });
+
+  it("maps subclass to subclass", () => {
+    expect(CONTENT_KEY_MAP["subclass"]).toBe("subclass");
+  });
 });
 
 describe("FLUFF_KEY_MAP", () => {

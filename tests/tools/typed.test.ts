@@ -287,6 +287,26 @@ describe("registerTypedTools", () => {
     expect(tools["adventure_get"]).toBeDefined();
   });
 
+  it("registers class_search tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["class_search"]).toBeDefined();
+  });
+
+  it("registers class_get tool", () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    expect(tools["class_get"]).toBeDefined();
+  });
+
+  it("class_search calls searchContentType with class folder", async () => {
+    const { server, tools } = makeServer();
+    registerTypedTools(server);
+    const [, , , handler] = tools["class_search"] as [string, string, unknown, (...args: unknown[]) => Promise<unknown>];
+    await handler({ query: "blood hunter", ruleset: "2014", limit: 10 });
+    expect(mockSearch).toHaveBeenCalledWith("class", "blood hunter", "2014", 10, {}, undefined, false);
+  });
+
   it("book_search calls searchContentType with books folder", async () => {
     const { server, tools } = makeServer();
     registerTypedTools(server);
