@@ -8,7 +8,7 @@
 
 ## Tech Stack
 
-- **Runtime:** Node.js ≥ 18 (native fetch, ESM)
+- **Runtime:** Node.js 24 (native fetch, ESM)
 - **Language:** TypeScript 5.x, strict mode, ESM (`"type": "module"`)
 - **Module resolution:** Node16 (requires `.js` extensions in imports)
 - **MCP SDK:** `@modelcontextprotocol/sdk` — `McpServer` + `StdioServerTransport`

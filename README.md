@@ -55,7 +55,7 @@ The manifest is schema-agnostic and self-updating. When 5etools adds a new conte
 
 ### Requirements
 
-- Node.js ≥ 18
+- Node.js 24
 - A GitHub personal access token (read-only, public repos) — strongly recommended for 5000 req/hr vs 60 unauth
 
 ### Install
