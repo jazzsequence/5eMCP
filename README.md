@@ -232,27 +232,30 @@ This project uses TDD. Tests are written before implementation. See `AGENTS.md` 
 
 ## Architecture
 
-```
-┌─────────────────────────────────────────────────────────┐
-│                      MCP Client                          │
-│           (Claude Code / other AI clients)               │
-└──────────────────────┬──────────────────────────────────┘
-                       │ stdio
-┌──────────────────────▼──────────────────────────────────┐
-│               MCP Server (Node.js)                       │
-│                                                          │
-│  Manifest Layer    ← GitHub Contents API, 1-hour TTL     │
-│  Cache Layer       ← SHA-keyed disk (local) / Redis      │
-│  raw.githubusercontent.com  ← fetch on cache miss        │
-│  Translation Layer ← tag resolver + typed/passthrough     │
-│  Calculators       ← CR, encounter, loot, scale (Ph. 4)  │
-└─────────────────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    Client["MCP Client\n(Claude Desktop / Claude Code / Cursor)"]
+    Server["MCP Server (Node.js)"]
+    Manifest["Manifest Layer\n1-hour TTL refresh"]
+    Cache["Cache Layer\nSHA-keyed disk or Redis"]
+    Translation["Translation Layer\ntag resolver · typed handlers · passthrough"]
+    Calculators["Calculators\nCR · encounter · loot · scaling"]
+    GH["GitHub Contents API"]
+    Raw["raw.githubusercontent.com"]
+    Redis[("Redis / Disk")]
+
+    Client -->|stdio| Server
+    Server --> Manifest
+    Server --> Cache
+    Server --> Translation
+    Server --> Calculators
+    Manifest -->|"index all files"| GH
+    Cache -->|"fetch on miss"| Raw
+    Cache <-->|"read / write"| Redis
 ```
 
 ## Legal
 
 5etools data is fetched live from public GitHub repositories. This server does not store or redistribute any content. The GitHub API rate limit applies. A GitHub token is required for sustained use.
-
-Full WotC sourcebook text is available via this server. The API key gate (Phase 5) is mandatory before making the HTTP endpoint publicly accessible. Do not expose the HTTP endpoint without authentication.
 
 Calculator logic is ported from 5etools' MIT-licensed JavaScript source.
