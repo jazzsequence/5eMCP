@@ -34,6 +34,9 @@ TDD METHODOLOGY:
 4. Does TypeScript compile? (npm run build)
 5. Does type-check pass? (npm run typecheck)
 6. Are tests and implementation in separate commits if substantial?
+7. Does every new feature set include BOTH unit tests AND behavioral tests in tests/behavioral/?
+   - Unit tests: cover individual function logic (filters, projection, edge cases)
+   - Behavioral tests: named after user intents (e.g. "find monsters in the nine hells"), use realistic 5etools-shaped mock data, test the full search pipeline end-to-end
 
 FILE ORGANIZATION:
 7. Test files in tests/ directory (mirroring src/ structure)?
