@@ -72,11 +72,15 @@ const CONTENT_TOOLS: ContentToolConfig[] = [
         cr_max: z.string().optional().describe(
           "Filter by maximum challenge rating inclusive (e.g. '1/4', '1/2', '5', '20')",
         ),
+        environment: z.string().optional().describe(
+          "Filter by habitat/environment (e.g. 'underdark', 'forest', 'nine hells', 'arctic')",
+        ),
       },
-      build: ({ type, cr_max }) => {
+      build: ({ type, cr_max, environment }) => {
         const filters: Record<string, unknown> = {};
         if (typeof type === "string" && type) filters.type = type;
         if (typeof cr_max === "string" && cr_max) filters.cr_max = cr_max;
+        if (typeof environment === "string" && environment) filters.environment = environment;
         return filters;
       },
     },
@@ -131,6 +135,9 @@ export function registerTypedTools(server: McpServer): void {
       query: z.string().describe(`Name or partial name to search for`),
       ruleset: RulesetSchema.describe("Which ruleset to search"),
       limit: z.number().int().min(1).max(100).default(DEFAULT_LIMIT).describe("Max results to return"),
+      fields: z.array(z.string()).optional().describe(
+        "Fields to include in each result (default: all fields). E.g. [\"name\",\"cr\",\"source\"]",
+      ),
       ...(filters?.schema ?? {}),
     };
 
@@ -139,14 +146,15 @@ export function registerTypedTools(server: McpServer): void {
       `Search ${description}s by name. Returns a list of matching entries.`,
       searchSchema,
       async (params) => {
-        const { query, ruleset, limit, ...rest } = params as {
+        const { query, ruleset, limit, fields, ...rest } = params as {
           query: string;
           ruleset: "2024" | "2014";
           limit: number;
+          fields?: string[];
           [key: string]: unknown;
         };
         const builtFilters = filters?.build(rest) ?? {};
-        const results = await searchContentType(folder, query, ruleset, limit, builtFilters);
+        const results = await searchContentType(folder, query, ruleset, limit, builtFilters, fields);
         return {
           content: [{ type: "text", text: JSON.stringify(results, null, 2) }],
         };

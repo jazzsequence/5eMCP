@@ -217,6 +217,29 @@ describe("searchContentType", () => {
     expect(results).toHaveLength(0);
   });
 
+  // Fields projection
+  it("projects only requested fields when fields parameter is provided", async () => {
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS).mockResolvedValueOnce(XGE_SPELLS);
+    const results = await searchContentType("spells", "fireball", "2024", 20, {}, ["name", "source"]);
+    expect(results[0]).toHaveProperty("name");
+    expect(results[0]).toHaveProperty("source");
+    expect(results[0]).not.toHaveProperty("level");
+    expect(results[0]).not.toHaveProperty("school");
+  });
+
+  it("returns all fields when fields parameter is omitted", async () => {
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS).mockResolvedValueOnce(XGE_SPELLS);
+    const results = await searchContentType("spells", "fireball", "2024");
+    expect(results[0]).toHaveProperty("level");
+    expect(results[0]).toHaveProperty("school");
+  });
+
+  it("returns all fields when fields parameter is empty array", async () => {
+    mockFetchRaw.mockResolvedValueOnce(PHB_SPELLS).mockResolvedValueOnce(XGE_SPELLS);
+    const results = await searchContentType("spells", "fireball", "2024", 20, {}, []);
+    expect(results[0]).toHaveProperty("level");
+  });
+
   // Structured filters
   it("filters by exact numeric field (level)", async () => {
     mockFetchRaw.mockResolvedValueOnce({
@@ -269,6 +292,21 @@ describe("searchContentType", () => {
     expect(results.map((r) => r.name)).toContain("Goblin");
     expect(results.map((r) => r.name)).not.toContain("Doppelganger");
     expect(results.map((r) => r.name)).not.toContain("Wolf");
+  });
+
+  it("filters by environment array field", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      monster: [
+        { name: "Drow Elite Warrior", source: "MM", environment: ["underdark"] },
+        { name: "Mind Flayer", source: "MM", environment: ["underdark", "urban"] },
+        { name: "Brown Bear", source: "MM", environment: ["forest"] },
+      ],
+    });
+    const results = await searchContentType("bestiary", "", "2024", 20, { environment: "underdark" });
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Drow Elite Warrior");
+    expect(names).toContain("Mind Flayer");
+    expect(names).not.toContain("Brown Bear");
   });
 
   it("combines query and filters (AND logic)", async () => {

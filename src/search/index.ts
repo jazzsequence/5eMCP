@@ -41,6 +41,11 @@ function entryMatchesFilters(entry: Record<string, unknown>, filters: Record<str
     } else if (key === "type") {
       const entryType = extractType(entry.type);
       if (!entryType.toLowerCase().includes((value as string).toLowerCase())) return false;
+    } else if (key === "environment") {
+      const envArray = entry.environment;
+      if (!Array.isArray(envArray)) return false;
+      const envValue = (value as string).toLowerCase();
+      if (!envArray.some((e) => typeof e === "string" && e.toLowerCase().includes(envValue))) return false;
     } else if (typeof value === "number") {
       if (entry[key] !== value) return false;
     } else if (typeof value === "string") {
@@ -79,6 +84,7 @@ export async function searchContentType(
   ruleset: Ruleset,
   limit = 20,
   filters: Record<string, unknown> = {},
+  fields?: string[],
 ): Promise<Record<string, unknown>[]> {
   const manifest = await getManifest(ruleset);
   const files = manifest.content[contentTypeFolder];
@@ -107,5 +113,10 @@ export async function searchContentType(
     }
   }
 
+  if (fields && fields.length > 0) {
+    return results.map((r) =>
+      Object.fromEntries(fields.filter((f) => f in r).map((f) => [f, r[f]])),
+    );
+  }
   return results;
 }
