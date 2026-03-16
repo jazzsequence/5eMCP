@@ -58,22 +58,22 @@ The manifest is schema-agnostic and self-updating. When 5etools adds a new conte
 ### Install
 
 ```bash
-git clone https://github.com/your-username/5etools-mcp.git
-cd 5etools-mcp
+git clone https://github.com/jazzsequence/5eMCP.git
+cd 5eMCP
 npm install
 npm run build
 ```
 
-### Claude Code (stdio mode)
+### Claude Desktop
 
-Add to `~/.claude.json`:
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
   "mcpServers": {
     "5etools": {
       "command": "node",
-      "args": ["/path/to/5etools-mcp/dist/index.js"],
+      "args": ["/path/to/5eMCP/dist/index.js"],
       "env": {
         "GITHUB_TOKEN": "ghp_your_token_here",
         "DEFAULT_RULESET": "2024"
@@ -82,6 +82,46 @@ Add to `~/.claude.json`:
   }
 }
 ```
+
+### Claude Code
+
+Add to `~/.claude.json`:
+
+```json
+{
+  "mcpServers": {
+    "5etools": {
+      "command": "node",
+      "args": ["/path/to/5eMCP/dist/index.js"],
+      "env": {
+        "GITHUB_TOKEN": "ghp_your_token_here",
+        "DEFAULT_RULESET": "2024"
+      }
+    }
+  }
+}
+```
+
+### Cursor
+
+Add to `.cursor/mcp.json` in your project (or `~/.cursor/mcp.json` globally):
+
+```json
+{
+  "mcpServers": {
+    "5etools": {
+      "command": "node",
+      "args": ["/path/to/5eMCP/dist/index.js"],
+      "env": {
+        "GITHUB_TOKEN": "ghp_your_token_here",
+        "DEFAULT_RULESET": "2024"
+      }
+    }
+  }
+}
+```
+
+Replace `/path/to/5eMCP` with the absolute path to your clone. `DEFAULT_RULESET` can be `"2024"` (default) or `"2014"` for legacy rules. `GITHUB_TOKEN` is optional but strongly recommended — unauthenticated requests are rate-limited to 60/hr.
 
 ## Available Tools
 
