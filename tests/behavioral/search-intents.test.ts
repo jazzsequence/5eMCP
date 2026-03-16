@@ -281,6 +281,80 @@ describe("user intent: find legendary magic items", () => {
   });
 });
 
+// ─── Scenario K: environment filter for Nine Hells encounters ────────────────
+
+describe("user intent: find monsters that live in the nine hells", () => {
+  it("returns only monsters with 'nine hells' environment using structured filter", async () => {
+    mockGetManifest.mockResolvedValue(makeManifest("bestiary", "bestiary-mm.json") as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      monster: [
+        { name: "Imp", source: "MM", type: "fiend", cr: "1", environment: ["nine hells"] },
+        { name: "Pit Fiend", source: "MM", type: "fiend", cr: "20", environment: ["nine hells"] },
+        { name: "Balor", source: "MM", type: "fiend", cr: "19", environment: ["abyss"] },
+        { name: "Brown Bear", source: "MM", type: "beast", cr: "1", environment: ["forest"] },
+      ],
+    });
+
+    const results = await searchContentType("bestiary", "", "2014", 20, { environment: "nine hells" });
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Imp");
+    expect(names).toContain("Pit Fiend");
+    expect(names).not.toContain("Balor");       // abyss, not nine hells
+    expect(names).not.toContain("Brown Bear");  // forest, not nine hells
+  });
+
+  it("combines environment filter with type and cr_max for encounter building", async () => {
+    mockGetManifest.mockResolvedValue(makeManifest("bestiary", "bestiary-mm.json") as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      monster: [
+        { name: "Imp", source: "MM", type: "fiend", cr: "1", environment: ["nine hells"] },
+        { name: "Chain Devil", source: "MM", type: "fiend", cr: "8", environment: ["nine hells"] },
+        { name: "Pit Fiend", source: "MM", type: "fiend", cr: "20", environment: ["nine hells"] },
+        { name: "Balor", source: "MM", type: "fiend", cr: "19", environment: ["abyss"] },
+      ],
+    });
+
+    // Level 10 party: CR ≤ 10, fiend type, nine hells environment
+    const results = await searchContentType("bestiary", "", "2014", 20, {
+      type: "fiend",
+      cr_max: "10",
+      environment: "nine hells",
+    });
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Imp");
+    expect(names).toContain("Chain Devil");
+    expect(names).not.toContain("Pit Fiend");  // CR 20 exceeds limit
+    expect(names).not.toContain("Balor");      // wrong environment
+  });
+});
+
+// ─── Scenario L: fields projection for large result sets ─────────────────────
+
+describe("user intent: get a summary list of monsters without full stat blocks", () => {
+  it("returns only requested fields when fields parameter is provided", async () => {
+    mockGetManifest.mockResolvedValue(makeManifest("bestiary", "bestiary-mm.json") as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      monster: [
+        { name: "Imp", source: "MM", type: "fiend", cr: "1", ac: [{ ac: 13 }], hp: { average: 10 }, speed: { walk: 20 }, environment: ["nine hells"] },
+        { name: "Chain Devil", source: "MM", type: "fiend", cr: "8", ac: [{ ac: 16 }], hp: { average: 85 }, speed: { walk: 30 }, environment: ["nine hells"] },
+      ],
+    });
+
+    const results = await searchContentType("bestiary", "", "2014", 20, {}, ["name", "cr", "source", "type"]);
+    expect(results).toHaveLength(2);
+    // Only requested fields present
+    expect(results[0]).toHaveProperty("name");
+    expect(results[0]).toHaveProperty("cr");
+    expect(results[0]).toHaveProperty("source");
+    expect(results[0]).toHaveProperty("type");
+    // Full stat block fields stripped
+    expect(results[0]).not.toHaveProperty("ac");
+    expect(results[0]).not.toHaveProperty("hp");
+    expect(results[0]).not.toHaveProperty("speed");
+    expect(results[0]).not.toHaveProperty("environment");
+  });
+});
+
 // ─── Scenario J: no deep recursion into nested entries ───────────────────────
 
 describe("user intent: search does not match deeply nested text", () => {
