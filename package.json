@@ -1,0 +1,24 @@
+{
+  "name": "hello-world-nodejs",
+  "version": "0.0.1",
+  "description": "This is a simple Hello World Node.js application.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pantheon-upstreams/hello-world-nodejs.git"
+  },
+  "keywords": [
+    "pantheon-upstreams",
+    "hello-world-nodejs"
+  ],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/pantheon-upstreams/hello-world-nodejs/issues"
+  },
+  "homepage": "https://github.com/pantheon-upstreams/hello-world-nodejs#readme"
+}
