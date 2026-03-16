@@ -5,6 +5,14 @@ import { stripInternalFields } from "../translation/strip.js";
 import { resolveTagsDeep } from "../translation/tags.js";
 import { mergeFluffEntries } from "../translation/fluff.js";
 import type { Ruleset } from "../types.js";
+import type { ManifestFile } from "../manifest/schema.js";
+
+/** Extracts the author portion from a homebrew filename like "Matthew Mercer; Blood Hunter.json". */
+function parseSourceAuthor(filename: string): string | undefined {
+  const idx = filename.indexOf(";");
+  if (idx === -1) return undefined;
+  return filename.slice(0, idx).trim();
+}
 
 type ContentEntry = Record<string, unknown>;
 
@@ -20,8 +28,6 @@ export async function getEntry(
   ruleset: Ruleset,
 ): Promise<ContentEntry | null> {
   const manifest = await getManifest(ruleset);
-  const files = manifest.content[contentTypeFolder];
-  if (!files || files.length === 0) return null;
 
   const contentKey = CONTENT_KEY_MAP[contentTypeFolder];
   if (!contentKey) return null;
@@ -30,34 +36,51 @@ export async function getEntry(
   const lowerName = name.toLowerCase();
   const lowerSource = source?.toLowerCase();
 
-  for (const file of files) {
-    const data = await fetchRaw(file.url) as Record<string, unknown>;
-    const entries = (data[contentKey] ?? []) as ContentEntry[];
+  const searchFiles = async (files: ManifestFile[], sourceAuthorOverride?: string): Promise<ContentEntry | null> => {
+    for (const file of files) {
+      const data = await fetchRaw(file.url) as Record<string, unknown>;
+      const entries = (data[contentKey] ?? []) as ContentEntry[];
 
-    const match = entries.find((e) => {
-      const eName = typeof e.name === "string" ? e.name.toLowerCase() : "";
-      if (eName !== lowerName) return false;
-      if (lowerSource) {
-        const eSource = typeof e.source === "string" ? e.source.toLowerCase() : "";
-        return eSource === lowerSource;
+      const match = entries.find((e) => {
+        const eName = typeof e.name === "string" ? e.name.toLowerCase() : "";
+        if (eName !== lowerName) return false;
+        if (lowerSource) {
+          const eSource = typeof e.source === "string" ? e.source.toLowerCase() : "";
+          return eSource === lowerSource;
+        }
+        return true;
+      });
+
+      if (!match) continue;
+
+      const augmented: ContentEntry = sourceAuthorOverride ? { ...match, sourceAuthor: sourceAuthorOverride } : match;
+      const stripped = stripInternalFields(augmented) as ContentEntry;
+
+      // Fetch and merge fluff if available
+      if (file.fluff_url && fluffKey) {
+        const fluffData = await fetchRaw(file.fluff_url) as Record<string, unknown>;
+        const fluffEntries = (fluffData[fluffKey] ?? []) as ContentEntry[];
+        const strippedFluff = fluffEntries.map((f) => stripInternalFields(f) as ContentEntry);
+        const merged = mergeFluffEntries([stripped], strippedFluff);
+        return resolveTagsDeep(merged[0]) as ContentEntry;
       }
-      return true;
-    });
 
-    if (!match) continue;
-
-    const stripped = stripInternalFields(match) as ContentEntry;
-
-    // Fetch and merge fluff if available
-    if (file.fluff_url && fluffKey) {
-      const fluffData = await fetchRaw(file.fluff_url) as Record<string, unknown>;
-      const fluffEntries = (fluffData[fluffKey] ?? []) as ContentEntry[];
-      const strippedFluff = fluffEntries.map((f) => stripInternalFields(f) as ContentEntry);
-      const merged = mergeFluffEntries([stripped], strippedFluff);
-      return resolveTagsDeep(merged[0]) as ContentEntry;
+      return resolveTagsDeep(stripped) as ContentEntry;
     }
+    return null;
+  };
 
-    return resolveTagsDeep(stripped) as ContentEntry;
+  // Try official content first
+  const officialFiles = manifest.content[contentTypeFolder] ?? [];
+  const officialResult = await searchFiles(officialFiles);
+  if (officialResult) return officialResult;
+
+  // Fall back to homebrew
+  const homebrewFiles = manifest.homebrew[contentTypeFolder] ?? [];
+  for (const file of homebrewFiles) {
+    const sourceAuthor = parseSourceAuthor(file.name);
+    const result = await searchFiles([file], sourceAuthor);
+    if (result) return result;
   }
 
   return null;

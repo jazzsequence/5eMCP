@@ -117,4 +117,67 @@ describe("getEntry", () => {
     const result = await getEntry("spells", "Fireball", undefined, "2024") as Record<string, unknown>;
     expect(result.fluff).toBeDefined();
   });
+
+  // Homebrew fallback
+  it("returns homebrew entry when not found in official content", async () => {
+    const manifest = {
+      ...FAKE_MANIFEST,
+      homebrew: {
+        spells: [{ name: "Homebrew Author; My Spells.json", path: "spell/Homebrew Author; My Spells.json", url: "https://raw.example.com/hb-spells.json", sha: "hb1" }],
+      },
+    };
+    mockGetManifest.mockResolvedValue(manifest as never);
+    mockFetchRaw
+      .mockResolvedValueOnce(PHB_FILE)            // official file — no match
+      .mockResolvedValueOnce({ spell: [{ name: "Homebrew Bolt", source: "HBSource", level: 2 }] }); // homebrew file
+    const result = await getEntry("spells", "Homebrew Bolt", undefined, "2024");
+    expect(result).not.toBeNull();
+    expect((result as Record<string, unknown>).name).toBe("Homebrew Bolt");
+  });
+
+  it("returns homebrew entry when official content array is empty (e.g. homebrew-only class)", async () => {
+    const manifest = {
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: { class: [] },
+      homebrew: {
+        class: [{ name: "Matthew Mercer; Blood Hunter (2022).json", path: "class/Matthew Mercer; Blood Hunter (2022).json", url: "https://raw.example.com/blood-hunter.json", sha: "bh1" }],
+      },
+    };
+    mockGetManifest.mockResolvedValue(manifest as never);
+    mockFetchRaw.mockResolvedValueOnce({ class: [{ name: "Blood Hunter", source: "BH2022", hd: { number: 1, faces: 10 } }] });
+    const result = await getEntry("class", "Blood Hunter", undefined, "2024");
+    expect(result).not.toBeNull();
+    expect((result as Record<string, unknown>).name).toBe("Blood Hunter");
+  });
+
+  it("returns null when entry not found in official or homebrew content", async () => {
+    const manifest = {
+      ...FAKE_MANIFEST,
+      homebrew: {
+        spells: [{ name: "hb-spells.json", path: "spell/hb-spells.json", url: "https://raw.example.com/hb-spells.json", sha: "hb1" }],
+      },
+    };
+    mockGetManifest.mockResolvedValue(manifest as never);
+    mockFetchRaw
+      .mockResolvedValueOnce(PHB_FILE)
+      .mockResolvedValueOnce({ spell: [{ name: "Other Spell", source: "HB", level: 1 }] });
+    const result = await getEntry("spells", "Nonexistent Spell", undefined, "2024");
+    expect(result).toBeNull();
+  });
+
+  it("injects sourceAuthor from homebrew filename into result", async () => {
+    const manifest = {
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: { class: [] },
+      homebrew: {
+        class: [{ name: "Matthew Mercer; Blood Hunter (2022).json", path: "class/Matthew Mercer; Blood Hunter (2022).json", url: "https://raw.example.com/blood-hunter.json", sha: "bh1" }],
+      },
+    };
+    mockGetManifest.mockResolvedValue(manifest as never);
+    mockFetchRaw.mockResolvedValueOnce({ class: [{ name: "Blood Hunter", source: "BH2022" }] });
+    const result = await getEntry("class", "Blood Hunter", undefined, "2024") as Record<string, unknown>;
+    expect(result?.sourceAuthor).toBe("Matthew Mercer");
+  });
 });

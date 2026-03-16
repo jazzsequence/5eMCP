@@ -565,6 +565,32 @@ describe("user intent: find everything written by Matt Mercer", () => {
   });
 });
 
+// ─── Scenario R: get_entry homebrew fallback ─────────────────────────────────
+
+describe("user intent: get full details of a homebrew class (Blood Hunter)", () => {
+  it("class_get returns Blood Hunter from homebrew when official class array is empty", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: { class: [] },
+      homebrew: {
+        class: [{ name: "Matthew Mercer; Blood Hunter (2022).json", path: "class/Matthew Mercer; Blood Hunter (2022).json", url: "https://raw.example.com/blood-hunter.json", sha: "bh1" }],
+      },
+    } as never);
+
+    mockFetchRaw.mockResolvedValueOnce({
+      class: [{ name: "Blood Hunter", source: "BH2022", hd: { number: 1, faces: 10 }, classFeatures: ["Blood Maledict|Blood Hunter|BH2022|1"] }],
+    });
+
+    // Import getEntry directly for behavioral test
+    const { getEntry } = await import("../../src/search/get-entry.js");
+    const result = await getEntry("class", "Blood Hunter", undefined, "2024");
+    expect(result).not.toBeNull();
+    expect((result as Record<string, unknown>).name).toBe("Blood Hunter");
+    expect((result as Record<string, unknown>).sourceAuthor).toBe("Matthew Mercer");
+  });
+});
+
 // ─── Scenario J: no deep recursion into nested entries ───────────────────────
 
 describe("user intent: search does not match deeply nested text", () => {
