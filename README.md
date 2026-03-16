@@ -18,10 +18,13 @@ Provides every content type 5e.tools displays — spells, monsters, items, class
 | Books & Adventures | Searchable index (name, ID, source, date) |
 | Homebrew | All TheGiddyLimit/homebrew content (via include_homebrew flag) |
 | Any future 5etools content type | Passthrough handler — always accessible |
+| Redis cache | SHA-keyed, falls back to disk if unavailable |
 | CR Calculator | Phase 4 |
 | Encounter Builder | Phase 4 |
 | Loot Generator | Phase 4 |
 | CR Scaling | Phase 4 |
+| HTTP transport | Phase 5 (in progress) |
+| Pantheon-hosted endpoint | Phase 5 (in progress) |
 
 ## Why Not Existing Solutions
 

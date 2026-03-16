@@ -8,7 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "start": "node dist/http.js",
+    "start": "tsx src/http.ts",
     "typecheck": "tsc --noEmit",
     "dev": "tsx src/index.ts",
     "test": "vitest run",
