@@ -612,3 +612,141 @@ describe("user intent: search does not match deeply nested text", () => {
     expect(results.map((r) => r.name)).not.toContain("Ice Toad");
   });
 });
+
+// ─── Scenario S: get Strixhaven relationship rules ────────────────────────────
+
+describe("user intent: get the relationship rules from Strixhaven", () => {
+  it("returns the Relationships section content from SCC book file", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: {
+        book: [{ name: "book-scc.json", path: "book/book-scc.json", url: "https://raw.example.com/book-scc.json", sha: "scc1", source: "SCC" }],
+        adventure: [],
+      },
+      homebrew: {},
+    } as never);
+
+    mockFetchRaw.mockResolvedValueOnce({
+      data: [
+        {
+          type: "section",
+          name: "School Is in Session",
+          entries: [
+            {
+              type: "section",
+              name: "Relationships",
+              entries: [
+                "Characters can form relationships with other students.",
+                { type: "entries", name: "Making Friends and Rivals", entries: ["Choose relationships each adventure."] },
+              ],
+            },
+            { type: "section", name: "Exams", entries: ["Exam rules here."] },
+          ],
+        },
+      ],
+    });
+
+    const { getBookContent } = await import("../../src/search/book-content.js");
+    const result = await getBookContent("SCC", "Relationships", "2024");
+    expect(result).not.toBeNull();
+    expect(result?.section).toBe("Relationships");
+    expect(result?.content).toBeDefined();
+  });
+
+  it("returns TOC listing chapter names when no section is specified", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: {
+        book: [{ name: "book-scc.json", path: "book/book-scc.json", url: "https://raw.example.com/book-scc.json", sha: "scc1", source: "SCC" }],
+        adventure: [],
+      },
+      homebrew: {},
+    } as never);
+
+    mockFetchRaw.mockResolvedValueOnce({
+      data: [
+        { type: "section", name: "Welcome to Strixhaven", entries: [] },
+        { type: "section", name: "Life at Strixhaven", entries: [] },
+        { type: "section", name: "School Is in Session", entries: [] },
+      ],
+    });
+
+    const { getBookContent } = await import("../../src/search/book-content.js");
+    const result = await getBookContent("SCC", undefined, "2024");
+    expect(result?.sections).toContain("Welcome to Strixhaven");
+    expect(result?.sections).toContain("School Is in Session");
+  });
+});
+
+// ─── Scenario T: get a sourcebook-embedded adventure ─────────────────────────
+
+describe("user intent: get the Campus Kerfuffle adventure from Strixhaven", () => {
+  it("returns Campus Kerfuffle TOC from adventure-scc-ck.json", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: {
+        book: [],
+        adventure: [
+          { name: "adventure-scc-ck.json", path: "adventure/adventure-scc-ck.json", url: "https://raw.example.com/adventure-scc-ck.json", sha: "ck1", source: "SCC-CK" },
+        ],
+      },
+      homebrew: {},
+    } as never);
+
+    mockFetchRaw.mockResolvedValueOnce({
+      data: [
+        {
+          type: "section",
+          name: "Campus Kerfuffle",
+          entries: [
+            "First year adventure intro.",
+            { type: "section", name: "Running This Adventure", entries: ["Setup notes."] },
+            { type: "section", name: "Year One, Autumn", entries: ["Autumn events."] },
+          ],
+        },
+      ],
+    });
+
+    const { getBookContent } = await import("../../src/search/book-content.js");
+    const result = await getBookContent("SCC-CK", undefined, "2024");
+    expect(result).not.toBeNull();
+    expect(result?.source).toBe("SCC-CK");
+    expect(result?.sections).toContain("Campus Kerfuffle");
+  });
+
+  it("returns a specific section from an adventure content file", async () => {
+    mockGetManifest.mockResolvedValue({
+      ruleset: "2024" as const,
+      built_at: Date.now(),
+      content: {
+        book: [],
+        adventure: [
+          { name: "adventure-scc-ck.json", path: "adventure/adventure-scc-ck.json", url: "https://raw.example.com/adventure-scc-ck.json", sha: "ck1", source: "SCC-CK" },
+        ],
+      },
+      homebrew: {},
+    } as never);
+
+    mockFetchRaw.mockResolvedValueOnce({
+      data: [
+        {
+          type: "section",
+          name: "Campus Kerfuffle",
+          entries: [
+            { type: "section", name: "Running This Adventure", entries: ["Setup notes here."] },
+            { type: "section", name: "Year One, Autumn", entries: ["Autumn events."] },
+          ],
+        },
+      ],
+    });
+
+    const { getBookContent } = await import("../../src/search/book-content.js");
+    const result = await getBookContent("SCC-CK", "Running This Adventure", "2024");
+    expect(result).not.toBeNull();
+    expect(result?.section).toBe("Running This Adventure");
+    expect(result?.content).toBeDefined();
+  });
+});
