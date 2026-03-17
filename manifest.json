@@ -1,0 +1,52 @@
+{
+  "manifest_version": "0.2",
+  "name": "5etools-mcp",
+  "display_name": "5etools D&D 5e Reference",
+  "version": "0.3.0",
+  "description": "Complete D&D 5e reference — spells, monsters, items, classes, backgrounds, feats, races, sourcebooks, adventures, and homebrew. Backed by live 5etools data. No API key required.",
+  "long_description": "Provides every content type from 5e.tools: spells with full descriptions, monster stat blocks with lore, magic items, class progressions, subclasses, backgrounds, feats, races, conditions, vehicles, traps, deities, languages, variant rules, random tables, and full sourcebook/adventure prose text. All content is fetched live from the 5etools GitHub repositories — nothing is stored. Also searches TheGiddyLimit/homebrew community content via the include_homebrew flag.",
+  "license": "MIT",
+  "author": {
+    "name": "jazzsequence"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jazzsequence/5eMCP"
+  },
+  "homepage": "https://github.com/jazzsequence/5eMCP",
+  "support": "https://github.com/jazzsequence/5eMCP/issues",
+
+  "compatibility": {
+    "platforms": ["darwin", "win32", "linux"]
+  },
+
+  "server": {
+    "type": "node",
+    "entry_point": "dist/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": ["${__dirname}/dist/index.js"],
+      "env": {
+        "GITHUB_TOKEN": "${user_config.github_token}",
+        "DEFAULT_RULESET": "${user_config.ruleset}"
+      }
+    }
+  },
+
+  "user_config": {
+    "github_token": {
+      "type": "string",
+      "title": "GitHub Token",
+      "description": "Read-only GitHub personal access token (public repos scope). Strongly recommended — unauthenticated requests are rate-limited to 60/hr. Create one at https://github.com/settings/tokens",
+      "sensitive": true,
+      "required": false
+    },
+    "ruleset": {
+      "type": "string",
+      "title": "Default Ruleset",
+      "description": "Which D&D 5e ruleset to use by default. Enter '2024' for current rules (Player's Handbook 2024) or '2014' for legacy rules.",
+      "default": "2024",
+      "required": false
+    }
+  }
+}

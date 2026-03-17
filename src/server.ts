@@ -8,7 +8,7 @@ import { registerBookContentTool } from "./tools/book-content.js";
 export function createServer(): McpServer {
   const server = new McpServer({
     name: "5etools-mcp",
-    version: "0.1.0",
+    version: "0.3.0",
   });
 
   registerMetaTools(server);

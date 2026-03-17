@@ -1,6 +1,6 @@
 {
   "name": "5etools-mcp",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "D&D 5e reference and utility MCP server backed by live 5etools data",
   "type": "module",
   "bin": {
@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
+    "build:mcpb": "npm run build && npx @anthropic-ai/mcpb pack . 5etools-mcp.mcpb",
     "start": "tsx src/http.ts",
     "typecheck": "tsc --noEmit",
     "dev": "tsx src/index.ts",
@@ -18,8 +19,6 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.12.0",
     "redis": "^5.11.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.7.0",
     "zod": "^3.22.0"
   },
   "devDependencies": {
@@ -27,6 +26,8 @@
     "@typescript-eslint/eslint-plugin": "^8.0.0",
     "@typescript-eslint/parser": "^8.0.0",
     "eslint": "^9.0.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0",
     "vitest": "^2.0.0"
   },
   "engines": {

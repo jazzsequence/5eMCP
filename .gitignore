@@ -11,6 +11,9 @@ dist/
 # Reviewer approval flag (ephemeral, written by Write tool to project root)
 .reviewer-approved
 
+# Built extension bundle
+*.mcpb
+
 # Cache
 .cache/
 
