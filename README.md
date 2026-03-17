@@ -92,7 +92,7 @@ Replace `/path/to/5eMCP` with the absolute path to your clone. `DEFAULT_RULESET`
 
 ## How It Works
 
-5e.tools is fully client-side. When `spells.html` loads, the browser fetches `data/spells/spells-phb.json` directly from GitHub and renders it in JavaScript. This server replicates that pattern server-side:
+[5e.tools](https://5e.tools) is fully client-side. When `spells.html` loads, the browser fetches `data/spells/spells-phb.json` directly from GitHub and renders it in JavaScript. This server replicates that pattern server-side:
 
 ```
 GitHub Contents API
