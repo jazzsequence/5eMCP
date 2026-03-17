@@ -10,8 +10,6 @@ A complete D&D 5e reference and utility MCP server backed by live [5etools](http
 
 ### Claude Desktop — One-Click Install (recommended)
 
-No Node.js or terminal required.
-
 1. Download `5eMCP.mcpb` from the [latest release](https://github.com/jazzsequence/5eMCP/releases/latest)
 2. Open the file — Claude Desktop will prompt you to install it, **or** go to **Settings → Extensions → Install Extension** and select the file
 3. Optionally enter a GitHub personal access token when prompted (recommended — unauthenticated requests are rate-limited to 60/hr)
