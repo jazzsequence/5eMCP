@@ -1,4 +1,4 @@
-# 5eMCP
+<h1><picture><source media="(prefers-color-scheme: dark)" srcset="assets/icon-dark.png"><source media="(prefers-color-scheme: light)" srcset="assets/icon-light.png"><img src="assets/icon-light.png" width="40" height="40" alt="D20"></picture> 5eMCP</h1>
 
 [![Tests](https://github.com/jazzsequence/5eMCP/actions/workflows/test.yml/badge.svg)](https://github.com/jazzsequence/5eMCP/actions/workflows/test.yml)
 [![Version](https://img.shields.io/github/v/release/jazzsequence/5eMCP?include_prereleases&label=version)](https://github.com/jazzsequence/5eMCP/releases/latest)
@@ -279,3 +279,7 @@ flowchart TD
 5etools data is fetched live from public GitHub repositories. This server does not store or redistribute any content. The GitHub API rate limit applies. A GitHub token is required for sustained use.
 
 Calculator logic is ported from 5etools' MIT-licensed JavaScript source.
+
+## Credits
+
+D20 icon by [Delapouite](https://delapouite.com) via [game-icons.net](https://game-icons.net), licensed [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).

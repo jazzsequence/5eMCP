@@ -15,6 +15,7 @@
   },
   "homepage": "https://github.com/jazzsequence/5eMCP",
   "support": "https://github.com/jazzsequence/5eMCP/issues",
+  "icon": "assets/icon-dark.png",
 
   "compatibility": {
     "platforms": ["darwin", "win32", "linux"]
