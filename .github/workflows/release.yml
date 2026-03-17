@@ -55,7 +55,7 @@ jobs:
         run: npx @anthropic-ai/mcpb validate manifest.json
 
       - name: Upload .mcpb artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: 5eMCP-mcpb
           path: 5eMCP.mcpb
