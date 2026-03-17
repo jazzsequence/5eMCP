@@ -6,55 +6,6 @@
 
 A complete D&D 5e reference and utility MCP server backed by live [5etools](https://5e.tools) data.
 
-## What It Does
-
-Provides every content type 5e.tools displays — spells, monsters, items, classes, backgrounds, feats, races, conditions, vehicles, traps, sourcebooks, adventures, and homebrew — plus callable DM utility tools (CR calculator, encounter builder, loot generator, CR scaling, Phase 4). All backed by live 5etools GitHub data, no hardcoded content.
-
-| Feature | Coverage |
-|---|---|
-| Spells | Full mechanical + fluff |
-| Bestiary | Full stat block + lore |
-| Items | Full mechanical + fluff |
-| Classes & Subclasses | Full progression + feature text |
-| Backgrounds, Feats, Races | Full entries + fluff |
-| Conditions, Rules, Tables | Complete |
-| Vehicles, Objects, Traps, Psionics | Complete |
-| Books & Adventures | Searchable index (name, ID, source, date) |
-| Homebrew | All TheGiddyLimit/homebrew content (via include_homebrew flag) |
-| Any future 5etools content type | Passthrough handler — always accessible |
-| Redis cache | SHA-keyed, falls back to disk if unavailable |
-| CR Calculator | Phase 4 |
-| Encounter Builder | Phase 4 |
-| Loot Generator | Phase 4 |
-| CR Scaling | Phase 4 |
-| HTTP transport | Phase 5 (in progress) |
-| Pantheon-hosted endpoint | Phase 5 (in progress) |
-
-## Why Not Existing Solutions
-
-| Project | Data Source | Full Coverage | Book Text | Homebrew |
-|---|---|---|---|---|
-| `procload/dnd-mcp` | D&D 5e API | SRD only | No | No |
-| `heffrey78/dnd-mcp` | Open5e REST | SRD only | No | No |
-| **`5eMCP`** | 5etools repos | Everything | Yes | Yes |
-
-SRD covers roughly the Player's Handbook core. Xanathar's, Tasha's, Mordenkainen's, all published adventures, UA, homebrew — none of that exists in other solutions.
-
-## How It Works
-
-5e.tools is fully client-side. When `spells.html` loads, the browser fetches `data/spells/spells-phb.json` directly from GitHub and renders it in JavaScript. This server replicates that pattern server-side:
-
-```
-GitHub Contents API
-  → manifest: { spells: [...], bestiary: [...], book: [...], ... }
-  → SHA-keyed disk/Redis cache
-  → raw.githubusercontent.com (fetch on miss)
-  → translation layer (resolve {@tags}, merge fluff, normalize)
-  → MCP tool response
-```
-
-The manifest is schema-agnostic and self-updating. When 5etools adds a new content type, the next manifest refresh picks it up automatically — no code change required. Unknown types run through the passthrough handler (tags resolved, internal fields stripped) and return clean JSON. Nothing is ever inaccessible.
-
 ## Quick Start
 
 ### Claude Desktop — One-Click Install (recommended)
@@ -140,6 +91,21 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 ```
 
 Replace `/path/to/5eMCP` with the absolute path to your clone. `DEFAULT_RULESET` can be `"2024"` (default) or `"2014"` for legacy rules. `GITHUB_TOKEN` is optional but strongly recommended — unauthenticated requests are rate-limited to 60/hr.
+
+## How It Works
+
+5e.tools is fully client-side. When `spells.html` loads, the browser fetches `data/spells/spells-phb.json` directly from GitHub and renders it in JavaScript. This server replicates that pattern server-side:
+
+```
+GitHub Contents API
+  → manifest: { spells: [...], bestiary: [...], book: [...], ... }
+  → SHA-keyed disk/Redis cache
+  → raw.githubusercontent.com (fetch on miss)
+  → translation layer (resolve {@tags}, merge fluff, normalize)
+  → MCP tool response
+```
+
+The manifest is schema-agnostic and self-updating. When 5etools adds a new content type, the next manifest refresh picks it up automatically — no code change required. Unknown types run through the passthrough handler (tags resolved, internal fields stripped) and return clean JSON. Nothing is ever inaccessible.
 
 ## Available Tools
 
