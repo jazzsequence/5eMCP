@@ -1,5 +1,5 @@
 #!/bin/bash
-# Install enforcement hooks for 5etools-mcp
+# Install enforcement hooks for 5eMCP
 
 echo "Installing enforcement hooks..."
 

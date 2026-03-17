@@ -11,7 +11,7 @@ async function main(): Promise<void> {
   const transport = new StdioServerTransport();
   await server.connect(transport);
 
-  console.error("5etools-mcp running (stdio)");
+  console.error("5eMCP running (stdio)");
 }
 
 main().catch((err: unknown) => {

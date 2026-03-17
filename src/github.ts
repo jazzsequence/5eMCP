@@ -7,7 +7,7 @@ function githubHeaders(): HeadersInit {
   const token = process.env.GITHUB_TOKEN;
   return {
     Accept: "application/vnd.github.v3+json",
-    "User-Agent": "5etools-mcp/0.1.0",
+    "User-Agent": "5eMCP/0.3.0",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
@@ -29,7 +29,7 @@ export async function fetchContents(
 
 export async function fetchRaw(url: string): Promise<unknown> {
   const res = await fetch(url, {
-    headers: { "User-Agent": "5etools-mcp/0.1.0" },
+    headers: { "User-Agent": "5eMCP/0.3.0" },
   });
   if (!res.ok) {
     throw new Error(`Fetch ${res.status} GET ${url}`);

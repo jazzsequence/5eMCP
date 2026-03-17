@@ -36,7 +36,7 @@ Provides every content type 5e.tools displays — spells, monsters, items, class
 |---|---|---|---|---|
 | `procload/dnd-mcp` | D&D 5e API | SRD only | No | No |
 | `heffrey78/dnd-mcp` | Open5e REST | SRD only | No | No |
-| **`5etools-mcp`** | 5etools repos | Everything | Yes | Yes |
+| **`5eMCP`** | 5etools repos | Everything | Yes | Yes |
 
 SRD covers roughly the Player's Handbook core. Xanathar's, Tasha's, Mordenkainen's, all published adventures, UA, homebrew — none of that exists in other solutions.
 
@@ -61,7 +61,7 @@ The manifest is schema-agnostic and self-updating. When 5etools adds a new conte
 
 No Node.js or terminal required.
 
-1. Download `5etools-mcp.mcpb` from the [latest release](https://github.com/jazzsequence/5eMCP/releases/latest)
+1. Download `5eMCP.mcpb` from the [latest release](https://github.com/jazzsequence/5eMCP/releases/latest)
 2. Open the file — Claude Desktop will prompt you to install it, **or** go to **Settings → Extensions → Install Extension** and select the file
 3. Optionally enter a GitHub personal access token when prompted (recommended — unauthenticated requests are rate-limited to 60/hr)
 4. Choose your default ruleset (`2024` or `2014`)
@@ -223,7 +223,7 @@ DM calculators (CR calculator, encounter builder, loot generator, CR scaling) ar
 | `GITHUB_TOKEN` | — | Read-only GitHub PAT. Strongly recommended. |
 | `DEFAULT_RULESET` | `"2024"` | Which ruleset to use (`"2024"` or `"2014"`). |
 | `MANIFEST_TTL_SECONDS` | `3600` | How often to rebuild the manifest (seconds). |
-| `CACHE_DIR` | `~/.cache/5etools-mcp` | Disk cache location (local stdio mode). |
+| `CACHE_DIR` | `~/.cache/5eMCP` | Disk cache location (local stdio mode). |
 | `REDIS_URL` | — | Redis connection URL (e.g. `redis://localhost:6379`). When set and reachable, Redis is used instead of disk cache. Falls back to disk on connection failure. |
 
 ## Ruleset Support

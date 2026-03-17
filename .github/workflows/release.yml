@@ -49,7 +49,7 @@ jobs:
         run: npm ci --omit=dev
 
       - name: Pack .mcpb bundle
-        run: npx --yes @anthropic-ai/mcpb pack . 5etools-mcp.mcpb
+        run: npx --yes @anthropic-ai/mcpb pack . 5eMCP.mcpb
 
       - name: Validate bundle
         run: npx @anthropic-ai/mcpb validate manifest.json
@@ -57,8 +57,8 @@ jobs:
       - name: Upload .mcpb artifact
         uses: actions/upload-artifact@v4
         with:
-          name: 5etools-mcp-mcpb
-          path: 5etools-mcp.mcpb
+          name: 5eMCP-mcpb
+          path: 5eMCP.mcpb
           retention-days: 5
 
   release:
@@ -71,7 +71,7 @@ jobs:
       - name: Download .mcpb artifact
         uses: actions/download-artifact@v4
         with:
-          name: 5etools-mcp-mcpb
+          name: 5eMCP-mcpb
 
       - name: Extract version from tag
         id: version
@@ -85,7 +85,7 @@ jobs:
             ## Installation
 
             ### Claude Desktop (one-click)
-            Download `5etools-mcp.mcpb` below and open it, or go to **Settings → Extensions → Install Extension** in Claude Desktop and select the file.
+            Download `5eMCP.mcpb` below and open it, or go to **Settings → Extensions → Install Extension** in Claude Desktop and select the file.
 
             ### Claude Code / developers
             ```bash
@@ -108,7 +108,7 @@ jobs:
             ```
 
             See the [README](https://github.com/jazzsequence/5eMCP#readme) for full documentation.
-          files: 5etools-mcp.mcpb
+          files: 5eMCP.mcpb
           draft: false
           prerelease: ${{ startsWith(steps.version.outputs.version, '0.') }}
           generate_release_notes: true

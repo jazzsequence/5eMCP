@@ -167,7 +167,7 @@ npm run build</code></pre>
 const server = createServer((req, res) => {
   if (req.url === "/health") {
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify({ status: "ok", service: "5etools-mcp" }));
+    res.end(JSON.stringify({ status: "ok", service: "5eMCP" }));
     return;
   }
 
@@ -176,5 +176,5 @@ const server = createServer((req, res) => {
 });
 
 server.listen(port, () => {
-  console.log(`5etools-mcp HTTP placeholder listening on port ${port}`);
+  console.log(`5eMCP HTTP placeholder listening on port ${port}`);
 });

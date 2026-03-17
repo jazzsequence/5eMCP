@@ -1,4 +1,4 @@
-# Agent Instructions — 5etools-mcp
+# Agent Instructions — 5eMCP
 
 ## Session Start Protocol — MANDATORY
 

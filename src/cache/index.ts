@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { homedir } from "node:os";
 import { getRedisClient } from "./redis.js";
 
-const CACHE_DIR = process.env.CACHE_DIR ?? join(homedir(), ".cache", "5etools-mcp");
+const CACHE_DIR = process.env.CACHE_DIR ?? join(homedir(), ".cache", "5emcp");
 
 async function ensureCacheDir(): Promise<void> {
   if (!existsSync(CACHE_DIR)) {

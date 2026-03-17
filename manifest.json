@@ -1,6 +1,6 @@
 {
   "manifest_version": "0.2",
-  "name": "5etools-mcp",
+  "name": "5emcp",
   "display_name": "5etools D&D 5e Reference",
   "version": "0.3.0",
   "description": "Complete D&D 5e reference — spells, monsters, items, classes, backgrounds, feats, races, sourcebooks, adventures, and homebrew. Backed by live 5etools data. No API key required.",

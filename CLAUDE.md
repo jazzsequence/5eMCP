@@ -1,8 +1,8 @@
-# 5etools-mcp — Claude Instructions
+# 5eMCP — Claude Instructions
 
 ## Project Overview
 
-`5etools-mcp` is a Model Context Protocol server providing comprehensive access to D&D 5e content — spells, monsters, items, classes, full sourcebook prose, adventure text, homebrew, and callable DM utility tools — backed by live 5etools GitHub data. No API key required; files are the API.
+`5eMCP` is a Model Context Protocol server providing comprehensive access to D&D 5e content — spells, monsters, items, classes, full sourcebook prose, adventure text, homebrew, and callable DM utility tools — backed by live 5etools GitHub data. No API key required; files are the API.
 
 **Core design principle:** Manifest-driven, pointer-based resolution. A lightweight dynamic index of everything in the 5etools repos is built from the GitHub Contents API. Content is never stored — when a tool is called, the server locates the file in the manifest, fetches only what is needed, runs it through the translation layer, and returns clean structured output.
 
@@ -79,7 +79,7 @@ src/
 GITHUB_TOKEN              # Read-only PAT (5000 req/hr vs 60 unauth) — strongly recommended
 DEFAULT_RULESET           # "2024" (default) or "2014"
 MANIFEST_TTL_SECONDS      # 3600 (default — 1 hour)
-CACHE_DIR                 # ~/.cache/5etools-mcp (default)
+CACHE_DIR                 # ~/.cache/5eMCP (default)
 ```
 
 ## Data Sources
@@ -133,7 +133,7 @@ Add to `~/.claude.json` (or project `.claude.json`):
   "mcpServers": {
     "5etools": {
       "command": "node",
-      "args": ["/path/to/5etools-mcp/dist/index.js"],
+      "args": ["/path/to/5eMCP/dist/index.js"],
       "env": {
         "GITHUB_TOKEN": "ghp_your_token_here",
         "DEFAULT_RULESET": "2024"
