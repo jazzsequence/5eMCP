@@ -77,15 +77,37 @@ FILES TO REVIEW:
 - Check: git diff --staged (review all staged changes)
 - Verify no secrets in staged files
 
+VERSION BUMP:
+27. Does this commit warrant a version bump?
+    - **NO BUMP** — docs only (README, AGENTS.md, CLAUDE.md), CI only (.github/workflows),
+      test-only changes, comments, formatting, dependency updates with no behavior change
+    - **BUMP: patch** — bug fix, security fix, small correction to existing behavior,
+      performance improvement with no API change
+    - **BUMP: minor** — new tool, new feature, new content type handler, new capability,
+      any addition visible to MCP clients
+    - **BUMP: major** — breaking change to existing tool signatures or behavior, removal
+      of tools, sweeping architectural change that changes how clients interact with the server.
+      **The reviewer must flag this but CANNOT approve it alone — human approval is mandatory.**
+    - **BUMP: uncertain** — describe why it is unclear and instruct the main agent to
+      ask the human user before proceeding
+
+    State your decision as one of exactly: `NO BUMP`, `BUMP: patch`, `BUMP: minor`,
+    `BUMP: major`, or `BUMP: uncertain — <reason>`.
+
+    If BUMP (any level): also provide a 2–3 sentence plain-English release summary
+    describing what changed from a user's perspective.
+
 DELIVERABLE:
-Provide APPROVE or REJECT with findings for ALL categories.
+Provide APPROVE or REJECT with findings for ALL categories, plus a VERSION BUMP decision.
 
 If REJECT: List violations and required fixes. Do NOT create approval flag.
 
 If APPROVE:
 1. Confirm all rules followed
-2. Say "✅ APPROVED" prominently
-3. Main agent will create approval flag: Write tool to .reviewer-approved (project root)
+2. State VERSION BUMP decision (NO BUMP / BUMP: patch / BUMP: minor / BUMP: uncertain)
+3. If BUMP: include 2–3 sentence release summary
+4. Say "✅ APPROVED" prominently
+5. Main agent will create approval flag: Write tool to .reviewer-approved (project root)
 ```
 
 After reviewer approves, main agent writes the approval flag using the **Write tool**
@@ -94,6 +116,40 @@ After reviewer approves, main agent writes the approval flag using the **Write t
 - Get timestamp: `date +%s` via Bash
 - Write to `.reviewer-approved` at project root using the Write tool
 - Then immediately run git add and git commit
+
+### Post-Commit Version Bump & Tagging
+
+After the commit lands, act on the reviewer's VERSION BUMP decision:
+
+**NO BUMP:** nothing to do.
+
+**BUMP: uncertain:** ask the human user directly before proceeding:
+> "The reviewer flagged this as uncertain for a version bump. Should this be a patch (bug fix) or minor (new feature) bump, or no bump at all?"
+
+**BUMP: major** — STOP immediately. Do not update versions or tag anything.
+Present to the human:
+> "The reviewer flagged this as a **major version bump** (breaking change). This requires your explicit approval. The proposed change is: [reviewer summary]. Should I proceed with a major bump to vX.0.0?"
+Only proceed after the human says yes. Then follow the patch/minor steps below with `X+1.0.0`.
+
+**BUMP: patch or BUMP: minor** (either from reviewer or after human clarifies uncertain):
+1. Read current version from `package.json`
+2. Calculate new version:
+   - patch: `x.y.Z+1`
+   - minor: `x.Y+1.0`
+   - major: `X+1.0.0` (only after explicit human approval — see above)
+3. Update version in all three places (must stay in sync):
+   - `package.json` — `"version"` field
+   - `manifest.json` — `"version"` field
+   - `src/server.ts` — `version:` in `new McpServer({...})`
+4. Spawn reviewer on the version bump commit alone (reviewer just confirms versions match and build passes; no new VERSION BUMP decision needed for a version-only commit)
+5. Commit: `chore: bump to vX.Y.Z`
+6. Present release summary to the human user and **ask for explicit approval before pushing the tag**:
+   > "Ready to release vX.Y.Z. Here's the summary: [reviewer summary]. Should I push the tag to trigger the GitHub release?"
+7. On human approval: `git tag vX.Y.Z` then `git push origin vX.Y.Z`
+   — this triggers the GHA release workflow which builds and attaches the `.mcpb` bundle.
+8. On human decline: leave the version bump commit unpushed; tag whenever the human is ready.
+
+**Never push a tag without explicit human approval.** Tag pushes trigger public releases.
 
 ---
 

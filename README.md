@@ -1,5 +1,9 @@
 # 5etools-mcp
 
+[![Tests](https://github.com/jazzsequence/5eMCP/actions/workflows/test.yml/badge.svg)](https://github.com/jazzsequence/5eMCP/actions/workflows/test.yml)
+[![Version](https://img.shields.io/github/v/release/jazzsequence/5eMCP?include_prereleases&label=version)](https://github.com/jazzsequence/5eMCP/releases/latest)
+[![Install in Claude Desktop](https://img.shields.io/badge/Claude_Desktop-Install_Extension-blueviolet?logo=anthropic)](https://github.com/jazzsequence/5eMCP/releases/latest)
+
 A complete D&D 5e reference and utility MCP server backed by live [5etools](https://5e.tools) data.
 
 ## What It Does
@@ -53,12 +57,23 @@ The manifest is schema-agnostic and self-updating. When 5etools adds a new conte
 
 ## Quick Start
 
-### Requirements
+### Claude Desktop — One-Click Install (recommended)
 
-- Node.js 24
-- A GitHub personal access token (read-only, public repos) — strongly recommended for 5000 req/hr vs 60 unauth
+No Node.js or terminal required.
 
-### Install
+1. Download `5etools-mcp.mcpb` from the [latest release](https://github.com/jazzsequence/5eMCP/releases/latest)
+2. Open the file — Claude Desktop will prompt you to install it, **or** go to **Settings → Extensions → Install Extension** and select the file
+3. Optionally enter a GitHub personal access token when prompted (recommended — unauthenticated requests are rate-limited to 60/hr)
+4. Choose your default ruleset (`2024` or `2014`)
+5. Restart Claude Desktop
+
+Your token is stored securely in the OS keychain (macOS Keychain / Windows Credential Manager) — never in plain text.
+
+---
+
+### Developers (Claude Code, Cursor, manual config)
+
+**Requirements:** Node.js ≥ 24, optional GitHub personal access token (read-only, public repos)
 
 ```bash
 git clone https://github.com/jazzsequence/5eMCP.git
@@ -67,26 +82,7 @@ npm install
 npm run build
 ```
 
-### Claude Desktop
-
-Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
-
-```json
-{
-  "mcpServers": {
-    "5etools": {
-      "command": "node",
-      "args": ["/path/to/5eMCP/dist/index.js"],
-      "env": {
-        "GITHUB_TOKEN": "ghp_your_token_here",
-        "DEFAULT_RULESET": "2024"
-      }
-    }
-  }
-}
-```
-
-### Claude Code
+#### Claude Code
 
 Add to `~/.claude.json`:
 
@@ -105,9 +101,28 @@ Add to `~/.claude.json`:
 }
 ```
 
-### Cursor
+#### Cursor
 
 Add to `.cursor/mcp.json` in your project (or `~/.cursor/mcp.json` globally):
+
+```json
+{
+  "mcpServers": {
+    "5etools": {
+      "command": "node",
+      "args": ["/path/to/5eMCP/dist/index.js"],
+      "env": {
+        "GITHUB_TOKEN": "ghp_your_token_here",
+        "DEFAULT_RULESET": "2024"
+      }
+    }
+  }
+}
+```
+
+#### Claude Desktop (manual config)
+
+Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
 {
@@ -188,6 +203,11 @@ Exact lookup by name with full fluff/description merged in. Accept `name`, optio
 | `adventure_get` | Adventure metadata by name |
 | `class_get` | Full class entry by name |
 | `subclass_get` | Full subclass entry by name |
+
+### Sourcebook & Adventure Content
+| Tool | Description |
+|---|---|
+| `book_content_get` | Retrieve full prose from a sourcebook or adventure by source abbreviation (e.g. `SCC`, `EGW`, `SCC-CK`). Without `section`: returns a table of contents. With `section`: returns that section's text rendered as clean markdown. Supports deep nested section search (case-insensitive substring match). |
 
 ### Omnisearch
 | Tool | Description |
