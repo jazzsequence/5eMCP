@@ -61,8 +61,8 @@ src/
 - **Phase 1 (done):** Manifest core + universal passthrough. Every content type accessible via `fetch_content`.
 - **Phase 2 (done):** Typed search/get tools for all 22 content types, multi-field search, structured filters (level, school, cr_max, type, rarity, environment), fields projection, omnisearch.
 - **Phase 3 (done):** Books/adventures index tools, homebrew search (include_homebrew flag), Redis cache (gated on REDIS_URL, falls back to disk).
-- **Phase 4 (current):** Callable DM tools (CR calculator, encounter builder, loot generator, CR scaling)
-- **Phase 5 (in progress):** Express HTTP transport + Pantheon deploy. HTTP placeholder live; real MCP-over-HTTP transport pending.
+- **Phase 4 (done):** Callable DM tools — `cr_calculate`, `cr_scale`, `encounter_build`, `loot_generate`. Completes the 1.0 featureset.
+- **Phase 5 (post-1.0):** Express HTTP transport + Pantheon deploy.
 
 ## Key Design Rules
 

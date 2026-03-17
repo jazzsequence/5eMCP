@@ -50,6 +50,12 @@ describe("createServer", () => {
 
     // Sourcebook prose tool
     expect(toolNames).toContain("book_content_get");
+
+    // DM calculator tools (Phase 4)
+    expect(toolNames).toContain("cr_calculate");
+    expect(toolNames).toContain("cr_scale");
+    expect(toolNames).toContain("encounter_build");
+    expect(toolNames).toContain("loot_generate");
   });
 
   it("has no duplicate tool names", () => {

@@ -4,11 +4,12 @@ import { registerPassthroughTools } from "./tools/passthrough.js";
 import { registerTypedTools } from "./tools/typed.js";
 import { registerOmnisearchTool } from "./tools/omnisearch.js";
 import { registerBookContentTool } from "./tools/book-content.js";
+import { registerCalculatorTools } from "./tools/calculators.js";
 
 export function createServer(): McpServer {
   const server = new McpServer({
     name: "5eMCP",
-    version: "0.4.0",
+    version: "1.0.0",
   });
 
   registerMetaTools(server);
@@ -16,6 +17,7 @@ export function createServer(): McpServer {
   registerTypedTools(server);
   registerOmnisearchTool(server);
   registerBookContentTool(server);
+  registerCalculatorTools(server);
 
   return server;
 }

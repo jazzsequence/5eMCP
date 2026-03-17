@@ -178,7 +178,15 @@ Exact lookup by name with full fluff/description merged in. Accept `name`, optio
 |---|---|
 | `omnisearch` | Search all 24 content types at once. Returns results tagged with `entityType`. Accepts `include_homebrew` (default **true** — homebrew is included by default). |
 
-DM calculators (CR calculator, encounter builder, loot generator, CR scaling) are added in Phase 4.
+### DM Calculator Tools
+All calculators are purely local — no network calls, no API key needed.
+
+| Tool | Description |
+|---|---|
+| `cr_calculate` | Calculate a monster's Challenge Rating from its stats (HP, AC, DPR, attack bonus). Applies DMG Appendix B algorithm. Supports damage immunity (effective HP ×2), resistance (×1.5), and vulnerability (×0.5). Returns final CR, XP, and the defensive/offensive sub-CRs. |
+| `cr_scale` | Look up the expected stat ranges (HP, AC, attack bonus, DPR, save DC, proficiency bonus) for a given CR from the DMG reference table. Useful for designing or adjusting homebrew monsters. |
+| `encounter_build` | Evaluate encounter difficulty for a party vs a set of monsters. Supports both 2014 (easy/medium/hard/deadly, with monster-count XP multiplier) and 2024 (low/moderate/high, no multiplier) rulesets. Returns adjusted XP, difficulty label, and full threshold breakdown. |
+| `loot_generate` | Generate individual treasure loot for a monster by CR, using the DMG individual treasure tables. Returns all possible outcomes for the CR bracket with probability percentages and average coin amounts. |
 
 ## Environment Variables
 
