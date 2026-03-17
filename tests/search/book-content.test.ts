@@ -122,7 +122,7 @@ describe("getBookContent", () => {
 
   it("returns TOC with top-level section names when no section filter is given", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
-    const result = await getBookContent("SCC", undefined, "2024");
+    const result = await getBookContent("SCC", undefined, undefined, "2024");
     expect(result).not.toBeNull();
     expect(result?.source).toBe("SCC");
     expect(result?.sections).toContain("Welcome to Strixhaven");
@@ -133,7 +133,7 @@ describe("getBookContent", () => {
 
   it("returns TOC for adventure content files (e.g. SCC-CK)", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_CK_DATA);
-    const result = await getBookContent("SCC-CK", undefined, "2024");
+    const result = await getBookContent("SCC-CK", undefined, undefined, "2024");
     expect(result).not.toBeNull();
     expect(result?.source).toBe("SCC-CK");
     expect(result?.sections).toContain("Campus Kerfuffle");
@@ -141,82 +141,120 @@ describe("getBookContent", () => {
 
   it("source lookup is case-insensitive", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
-    const result = await getBookContent("scc", undefined, "2024");
+    const result = await getBookContent("scc", undefined, undefined, "2024");
     expect(result).not.toBeNull();
     expect(result?.source).toBe("SCC");
   });
 
-  // ── Section filter mode ───────────────────────────────────────────────────
+  // ── Section filter: leaf section (no named children) → returns text ───────
 
-  it("returns rendered markdown text when section filter matches a top-level section", async () => {
+  it("returns rendered text directly when section is a leaf (no named subsections)", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
-    const result = await getBookContent("SCC", "Welcome to Strixhaven", "2024");
+    const result = await getBookContent("SCC", "Welcome to Strixhaven", undefined, "2024");
     expect(result).not.toBeNull();
     expect(result?.section).toBe("Welcome to Strixhaven");
     expect(result?.text).toBeDefined();
     expect(typeof result?.text).toBe("string");
+    expect(result?.text).toContain("Welcome text.");
+    expect(result).not.toHaveProperty("subsections");
+  });
+
+  it("leaf section result has no sections list", async () => {
+    mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
+    const result = await getBookContent("SCC", "Welcome to Strixhaven", undefined, "2024");
     expect(result).not.toHaveProperty("sections");
   });
 
-  it("rendered text contains the section prose", async () => {
+  // ── Section filter: section with named children → returns subsection TOC ──
+
+  it("returns subsection list when section has named children", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
-    const result = await getBookContent("SCC", "Welcome to Strixhaven", "2024");
-    expect(result?.text).toContain("Welcome text.");
+    const result = await getBookContent("SCC", "Life at Strixhaven", undefined, "2024");
+    expect(result).not.toBeNull();
+    expect(result?.section).toBe("Life at Strixhaven");
+    expect(result?.subsections).toBeDefined();
+    expect(result?.subsections).toContain("Lorehold College");
+    expect(result?.subsections).toContain("Prismari College");
+    expect(result).not.toHaveProperty("text");
   });
 
-  it("finds deeply nested sections (e.g. Relationships inside School Is in Session)", async () => {
+  it("returns subsection list for deeply nested sections with children", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
-    const result = await getBookContent("SCC", "Relationships", "2024");
+    const result = await getBookContent("SCC", "Relationships", undefined, "2024");
     expect(result).not.toBeNull();
     expect(result?.section).toBe("Relationships");
-    expect(result?.text).toBeDefined();
-  });
-
-  it("rendered text for nested section includes sub-section headings", async () => {
-    mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
-    const result = await getBookContent("SCC", "Relationships", "2024");
-    expect(result?.text).toContain("Making Friends and Rivals");
-  });
-
-  it("finds nested sections inside top-level sections (e.g. Lorehold College)", async () => {
-    mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
-    const result = await getBookContent("SCC", "Lorehold", "2024");
-    expect(result).not.toBeNull();
-    expect(result?.section).toBe("Lorehold College");
+    expect(result?.subsections).toBeDefined();
+    expect(result?.subsections).toContain("Making Friends and Rivals");
+    expect(result).not.toHaveProperty("text");
   });
 
   it("section filter is case-insensitive substring match", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
-    const result = await getBookContent("SCC", "lorehold", "2024");
+    const result = await getBookContent("SCC", "lorehold", undefined, "2024");
     expect(result).not.toBeNull();
     expect(result?.section).toBe("Lorehold College");
   });
 
   it("returns available sections list when section filter matches nothing", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
-    const result = await getBookContent("SCC", "Nonexistent Section", "2024");
+    const result = await getBookContent("SCC", "Nonexistent Section", undefined, "2024");
     expect(result).not.toBeNull();
     expect(result?.error).toMatch(/not found/i);
     expect(result?.sections).toBeDefined();
+  });
+
+  // ── Subsection filter: section + subsection → returns text ────────────────
+
+  it("returns text of a specific subsection when both section and subsection are provided", async () => {
+    mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
+    const result = await getBookContent("SCC", "Life at Strixhaven", "Lorehold", "2024");
+    expect(result).not.toBeNull();
+    expect(result?.section).toBe("Life at Strixhaven");
+    expect(result?.subsection).toBe("Lorehold College");
+    expect(result?.text).toBeDefined();
+    expect(result?.text).toContain("Lorehold is the college of history and order.");
+  });
+
+  it("subsection filter is case-insensitive substring match", async () => {
+    mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
+    const result = await getBookContent("SCC", "Life at Strixhaven", "prismari", "2024");
+    expect(result?.subsection).toBe("Prismari College");
+    expect(result?.text).toContain("Prismari is the college of art and chaos.");
+  });
+
+  it("returns subsection list when subsection filter matches nothing", async () => {
+    mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
+    const result = await getBookContent("SCC", "Life at Strixhaven", "Nonexistent", "2024");
+    expect(result).not.toBeNull();
+    expect(result?.error).toMatch(/not found/i);
+    expect(result?.subsections).toBeDefined();
+    expect(result?.subsections).toContain("Lorehold College");
+    expect(result?.subsections).toContain("Prismari College");
+  });
+
+  it("subsection text does not include sibling subsections", async () => {
+    mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
+    const result = await getBookContent("SCC", "Life at Strixhaven", "Lorehold", "2024");
+    expect(result?.text).not.toContain("Prismari");
   });
 
   // ── Book vs adventure lookup ──────────────────────────────────────────────
 
   it("searches book content first, then adventure content", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_BOOK_DATA);
-    await getBookContent("SCC", undefined, "2024");
+    await getBookContent("SCC", undefined, undefined, "2024");
     expect(mockFetchRaw).toHaveBeenCalledWith("https://raw.example.com/book-scc.json");
   });
 
   it("finds source in adventure content when not in book content", async () => {
     mockFetchRaw.mockResolvedValueOnce(FAKE_SCC_CK_DATA);
-    const result = await getBookContent("SCC-CK", undefined, "2024");
+    const result = await getBookContent("SCC-CK", undefined, undefined, "2024");
     expect(result).not.toBeNull();
     expect(mockFetchRaw).toHaveBeenCalledWith("https://raw.example.com/adventure-scc-ck.json");
   });
 
   it("returns null when source not found in book or adventure content", async () => {
-    const result = await getBookContent("UNKNOWN", undefined, "2024");
+    const result = await getBookContent("UNKNOWN", undefined, undefined, "2024");
     expect(result).toBeNull();
   });
 
@@ -231,7 +269,7 @@ describe("getBookContent", () => {
       }],
     };
     mockFetchRaw.mockResolvedValueOnce(dataWithTags);
-    const result = await getBookContent("SCC", "Tagged Section", "2024");
+    const result = await getBookContent("SCC", "Tagged Section", undefined, "2024");
     expect(result?.text).toContain("**bold text**");
   });
 
@@ -245,7 +283,7 @@ describe("getBookContent", () => {
       }],
     };
     mockFetchRaw.mockResolvedValueOnce(dataWithInternal);
-    const result = await getBookContent("SCC", "Internal Section", "2024");
+    const result = await getBookContent("SCC", "Internal Section", undefined, "2024");
     expect(result?.text).not.toContain("_internalField");
     expect(result?.text).not.toContain("hidden");
   });

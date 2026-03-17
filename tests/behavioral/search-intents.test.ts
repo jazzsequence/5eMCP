@@ -648,11 +648,12 @@ describe("user intent: get the relationship rules from Strixhaven", () => {
     });
 
     const { getBookContent } = await import("../../src/search/book-content.js");
-    const result = await getBookContent("SCC", "Relationships", "2024");
+    const result = await getBookContent("SCC", "Relationships", undefined, "2024");
     expect(result).not.toBeNull();
     expect(result?.section).toBe("Relationships");
-    expect(result?.text).toBeDefined();
-    expect(typeof result?.text).toBe("string");
+    // Relationships has named subsections → returns subsection list, not full text
+    expect(result?.subsections).toBeDefined();
+    expect(result?.subsections).toContain("Making Friends and Rivals");
   });
 
   it("returns TOC listing chapter names when no section is specified", async () => {
@@ -675,7 +676,7 @@ describe("user intent: get the relationship rules from Strixhaven", () => {
     });
 
     const { getBookContent } = await import("../../src/search/book-content.js");
-    const result = await getBookContent("SCC", undefined, "2024");
+    const result = await getBookContent("SCC", undefined, undefined, "2024");
     expect(result?.sections).toContain("Welcome to Strixhaven");
     expect(result?.sections).toContain("School Is in Session");
   });
@@ -712,7 +713,7 @@ describe("user intent: get the Campus Kerfuffle adventure from Strixhaven", () =
     });
 
     const { getBookContent } = await import("../../src/search/book-content.js");
-    const result = await getBookContent("SCC-CK", undefined, "2024");
+    const result = await getBookContent("SCC-CK", undefined, undefined, "2024");
     expect(result).not.toBeNull();
     expect(result?.source).toBe("SCC-CK");
     expect(result?.sections).toContain("Campus Kerfuffle");
@@ -745,9 +746,10 @@ describe("user intent: get the Campus Kerfuffle adventure from Strixhaven", () =
     });
 
     const { getBookContent } = await import("../../src/search/book-content.js");
-    const result = await getBookContent("SCC-CK", "Running This Adventure", "2024");
+    const result = await getBookContent("SCC-CK", "Running This Adventure", undefined, "2024");
     expect(result).not.toBeNull();
     expect(result?.section).toBe("Running This Adventure");
+    // Leaf section (no named subsections) → returns text directly
     expect(result?.text).toBeDefined();
     expect(typeof result?.text).toBe("string");
   });
