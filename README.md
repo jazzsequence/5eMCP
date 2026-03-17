@@ -1,4 +1,4 @@
-# 5etools-mcp
+# 5eMCP
 
 [![Tests](https://github.com/jazzsequence/5eMCP/actions/workflows/test.yml/badge.svg)](https://github.com/jazzsequence/5eMCP/actions/workflows/test.yml)
 [![Version](https://img.shields.io/github/v/release/jazzsequence/5eMCP?include_prereleases&label=version)](https://github.com/jazzsequence/5eMCP/releases/latest)
