@@ -12,7 +12,7 @@ A complete D&D 5e reference and utility MCP server backed by live [5etools](http
 
 1. Download `5eMCP.mcpb` from the [latest release](https://github.com/jazzsequence/5eMCP/releases/latest)
 2. Open the file — Claude Desktop will prompt you to install it, **or** go to **Settings → Extensions → Install Extension** and select the file
-3. Optionally enter a GitHub personal access token when prompted (recommended — unauthenticated requests are rate-limited to 60/hr)
+3. Enter your GitHub personal access token when prompted (required — create a free one at [github.com/settings/tokens](https://github.com/settings/tokens) with `public_repo` scope or read-only access to public repos)
 4. Choose your default ruleset (`2024` or `2014`)
 5. Restart Claude Desktop
 
@@ -69,7 +69,7 @@ Add to `.cursor/mcp.json` in your project (or `~/.cursor/mcp.json` globally):
 }
 ```
 
-#### Claude Desktop (manual config)
+#### Claude Desktop (manual config) {#claude-desktop-manual-config}
 
 Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 

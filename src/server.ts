@@ -9,7 +9,7 @@ import { registerCalculatorTools } from "./tools/calculators.js";
 export function createServer(): McpServer {
   const server = new McpServer({
     name: "5eMCP",
-    version: "1.0.0",
+    version: "1.0.1",
   });
 
   registerMetaTools(server);

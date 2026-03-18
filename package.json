@@ -1,6 +1,6 @@
 {
   "name": "5emcp",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "D&D 5e reference and utility MCP server backed by live 5etools data",
   "type": "module",
   "bin": {
