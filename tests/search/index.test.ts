@@ -457,4 +457,54 @@ describe("searchContentType", () => {
     const result = results.find((r) => r.name === "Fireball");
     expect(result?.sourceAuthor).toBeUndefined();
   });
+
+  // String-field discoverability (group, tier, rarity, etc.)
+  it("matches on arbitrary top-level string fields not in SEARCHABLE_FIELDS (e.g. group)", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      item: [
+        { name: "Danoth's Visor (Dormant)", source: "EGW", rarity: "artifact", group: "Vestiges of Divergence" },
+        { name: "Longsword +1", source: "DMG", rarity: "uncommon" },
+      ],
+    });
+    const results = await searchContentType("items", "vestige", "2024");
+    expect(results.map((r) => r.name)).toContain("Danoth's Visor (Dormant)");
+    expect(results.map((r) => r.name)).not.toContain("Longsword +1");
+  });
+
+  it("matches on rarity as a free-text query (not just structured filter)", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      item: [
+        { name: "Vorpal Sword", source: "DMG", rarity: "legendary" },
+        { name: "Bag of Holding", source: "DMG", rarity: "uncommon" },
+      ],
+    });
+    const results = await searchContentType("items", "legendary", "2024");
+    expect(results.map((r) => r.name)).toContain("Vorpal Sword");
+    expect(results.map((r) => r.name)).not.toContain("Bag of Holding");
+  });
+
+  it("matches on tier string field", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      item: [
+        { name: "Holy Avenger", source: "DMG", rarity: "legendary", tier: "major" },
+        { name: "Candle of Invocation", source: "DMG", rarity: "legendary", tier: "major" },
+        { name: "Potion of Healing", source: "PHB", rarity: "common", tier: "minor" },
+      ],
+    });
+    const results = await searchContentType("items", "minor", "2024");
+    expect(results.map((r) => r.name)).toContain("Potion of Healing");
+    expect(results.map((r) => r.name)).not.toContain("Holy Avenger");
+  });
+
+  it("does not match very-short type codes for normal queries (no false positives)", async () => {
+    mockFetchRaw.mockResolvedValueOnce({
+      item: [
+        { name: "Longsword", source: "PHB", type: "M" },
+        { name: "Shortsword", source: "PHB", type: "M" },
+      ],
+    });
+    // Searching "vestige" should not match type:"M"
+    const results = await searchContentType("items", "vestige", "2024");
+    expect(results).toHaveLength(0);
+  });
 });

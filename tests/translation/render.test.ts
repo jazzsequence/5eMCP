@@ -167,6 +167,97 @@ describe("renderEntriesToMarkdown", () => {
     expect(result).toContain("Your walking speed is 30 feet.");
   });
 
+  // ── Stat block cross-reference ────────────────────────────────────────────
+
+  it("renders type:statblock as a named reference note", () => {
+    const result = renderEntriesToMarkdown([
+      { type: "statblock", tag: "creature", name: "Zombie", source: "MM" },
+    ]);
+    expect(result).toContain("Zombie");
+    expect(result).toContain("MM");
+    expect(result.trim()).not.toBe("");
+  });
+
+  it("renders type:statblock without source gracefully", () => {
+    const result = renderEntriesToMarkdown([
+      { type: "statblock", tag: "creature", name: "Custom Beast" },
+    ]);
+    expect(result).toContain("Custom Beast");
+    expect(result.trim()).not.toBe("");
+  });
+
+  it("skips type:statblock with no name", () => {
+    const result = renderEntriesToMarkdown([
+      "Before.",
+      { type: "statblock", tag: "creature" },
+      "After.",
+    ]);
+    expect(result).toBe("Before.\n\nAfter.");
+  });
+
+  // ── Inline stat blocks ────────────────────────────────────────────────────
+
+  it("renders type:statblockInline with key stats", () => {
+    const result = renderEntriesToMarkdown([
+      {
+        type: "statblockInline",
+        dataType: "monster",
+        data: {
+          name: "Cave Bear",
+          cr: "2",
+          ac: [{ ac: 12 }],
+          hp: { average: 42, formula: "5d10+15" },
+          speed: { walk: 40 },
+          str: 20, dex: 10, con: 16, int: 2, wis: 13, cha: 7,
+        },
+      },
+    ]);
+    expect(result).toContain("Cave Bear");
+    expect(result).toContain("CR 2");
+    expect(result).toContain("12");   // AC
+    expect(result).toContain("42");   // HP
+    expect(result).toContain("20");   // STR
+  });
+
+  it("renders type:statblockInline with string CR object", () => {
+    const result = renderEntriesToMarkdown([
+      {
+        type: "statblockInline",
+        dataType: "monster",
+        data: {
+          name: "Shadow",
+          cr: { cr: "1/2" },
+          ac: [{ ac: 12 }],
+          hp: { average: 16, formula: "3d8+3" },
+          speed: { walk: 40 },
+          str: 6, dex: 14, con: 13, int: 6, wis: 10, cha: 8,
+        },
+      },
+    ]);
+    expect(result).toContain("Shadow");
+    expect(result).toContain("1/2");
+  });
+
+  it("skips type:statblockInline with no data", () => {
+    const result = renderEntriesToMarkdown([
+      "Before.",
+      { type: "statblockInline" },
+      "After.",
+    ]);
+    expect(result).toBe("Before.\n\nAfter.");
+  });
+
+  it("renders mixed content with statblock references inline", () => {
+    const result = renderEntriesToMarkdown([
+      "The adventurers face a terrible foe.",
+      { type: "statblock", tag: "creature", name: "Adult Red Dragon", source: "MM" },
+      "The dragon roars.",
+    ]);
+    expect(result).toContain("The adventurers face a terrible foe.");
+    expect(result).toContain("Adult Red Dragon");
+    expect(result).toContain("The dragon roars.");
+  });
+
   // ── Unknown types ──────────────────────────────────────────────────────────
 
   it("skips unknown entry types without throwing", () => {

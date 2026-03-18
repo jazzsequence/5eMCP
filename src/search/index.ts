@@ -5,8 +5,11 @@ import { stripInternalFields } from "../translation/strip.js";
 import { resolveTagsDeep } from "../translation/tags.js";
 import type { Ruleset } from "../types.js";
 
-/** Fields checked for query matches in addition to name. */
+/** Named string fields always checked for query matches (in addition to name). */
 const SEARCHABLE_FIELDS = ["source", "pantheon", "sourceAuthor"] as const;
+
+/** All named fields explicitly checked — used to skip re-checking them in the general pass. */
+const NAMED_CHECKED_FIELDS = new Set(["name", "source", "pantheon", "sourceAuthor"]);
 
 /** Strips non-alphanumeric characters and lowercases — for matching concatenated source abbreviations. */
 function normalize(s: string): string {
@@ -80,9 +83,13 @@ function entryMatchesQuery(entry: Record<string, unknown>, lowerQuery: string): 
       if (field !== "name" && normalizedQuery && normalize(val).includes(normalizedQuery)) return true;
     }
   }
-  // Check all top-level array-of-strings fields (property, damageInflict, environment, etc.)
-  for (const val of Object.values(entry)) {
-    if (Array.isArray(val)) {
+  // Check all top-level string fields not already checked above (group, rarity, tier, etc.)
+  // and all top-level array-of-strings fields (property, damageInflict, environment, etc.)
+  for (const [key, val] of Object.entries(entry)) {
+    if (NAMED_CHECKED_FIELDS.has(key)) continue;
+    if (typeof val === "string") {
+      if (val.toLowerCase().includes(lowerQuery)) return true;
+    } else if (Array.isArray(val)) {
       for (const el of val) {
         if (typeof el === "string" && el.toLowerCase().includes(lowerQuery)) return true;
       }

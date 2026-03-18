@@ -135,6 +135,70 @@ export function renderEntriesToMarkdown(entries: Entry | Entry[], depth = 0): st
         break;
       }
 
+      case "statblock": {
+        // Cross-reference to an external stat block — render as a named note
+        const sbName = node.name as string | undefined;
+        const sbSource = node.source as string | undefined;
+        if (sbName) {
+          const src = sbSource ? ` (${sbSource})` : "";
+          parts.push(`_[Stat Block: **${sbName}**${src} — use \`monster_get\` for full details]_`);
+        }
+        break;
+      }
+
+      case "statblockInline": {
+        // Embedded stat block — render key mechanical stats
+        const sbi = node.data as Record<string, unknown> | undefined;
+        if (!sbi || typeof sbi.name !== "string") break;
+
+        const crRaw = sbi.cr;
+        const crStr =
+          typeof crRaw === "string" ? crRaw :
+          (typeof crRaw === "object" && crRaw !== null && "cr" in crRaw)
+            ? String((crRaw as Record<string, unknown>).cr)
+            : "—";
+
+        // AC: [{ac: 12}] or number
+        const acRaw = sbi.ac;
+        let acStr = "—";
+        if (Array.isArray(acRaw) && acRaw.length > 0) {
+          const first = acRaw[0] as Record<string, unknown>;
+          acStr = String(typeof first.ac === "number" ? first.ac : first);
+        } else if (typeof acRaw === "number") {
+          acStr = String(acRaw);
+        }
+
+        // HP: {average: 22, formula: "4d8+4"}
+        const hpRaw = sbi.hp as Record<string, unknown> | undefined;
+        const hpStr = hpRaw
+          ? hpRaw.formula
+            ? `${hpRaw.average} (${hpRaw.formula})`
+            : String(hpRaw.average ?? "—")
+          : "—";
+
+        // Speed: {walk: 30, fly: 60, ...}
+        const speedRaw = sbi.speed as Record<string, unknown> | undefined;
+        const speedStr = speedRaw
+          ? Object.entries(speedRaw)
+              .map(([mode, val]) => mode === "walk" ? `${val} ft.` : `${mode} ${val} ft.`)
+              .join(", ")
+          : "—";
+
+        // Ability scores
+        const abilityLine = (["str", "dex", "con", "int", "wis", "cha"] as const)
+          .map((a) => `${a.toUpperCase()} ${typeof sbi[a] === "number" ? sbi[a] : "—"}`)
+          .join(" | ");
+
+        parts.push(
+          [
+            `**${sbi.name}** (CR ${crStr})`,
+            `**AC** ${acStr} | **HP** ${hpStr} | **Speed** ${speedStr}`,
+            abilityLine,
+          ].join("\n"),
+        );
+        break;
+      }
+
       case "image":
       case "gallery":
         // Skip visual-only content — not useful for LLM text consumption
