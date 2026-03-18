@@ -3,12 +3,18 @@ import type { GitHubContentsItem } from "./types.js";
 const GITHUB_API = "https://api.github.com";
 const GITHUB_RAW = "https://raw.githubusercontent.com";
 
+/** Returns true only for a token that looks like a real PAT, not an empty string
+ *  or an unresolved mcpb template variable like "${user_config.github_token}". */
+function isValidToken(token: string | undefined): boolean {
+  return !!token && token.trim() !== "" && !token.startsWith("${");
+}
+
 function githubHeaders(): HeadersInit {
   const token = process.env.GITHUB_TOKEN;
   return {
     Accept: "application/vnd.github.v3+json",
-    "User-Agent": "5eMCP/0.3.0",
-    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    "User-Agent": "5eMCP/1.0.0",
+    ...(isValidToken(token) ? { Authorization: `Bearer ${token}` } : {}),
   };
 }
 
@@ -29,7 +35,7 @@ export async function fetchContents(
 
 export async function fetchRaw(url: string): Promise<unknown> {
   const res = await fetch(url, {
-    headers: { "User-Agent": "5eMCP/0.3.0" },
+    headers: { "User-Agent": "5eMCP/1.0.0" },
   });
   if (!res.ok) {
     throw new Error(`Fetch ${res.status} GET ${url}`);

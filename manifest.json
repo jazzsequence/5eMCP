@@ -38,9 +38,10 @@
     "github_token": {
       "type": "string",
       "title": "GitHub Token",
-      "description": "Read-only GitHub personal access token (public repos scope). Strongly recommended — unauthenticated requests are rate-limited to 60/hr. Create one at https://github.com/settings/tokens",
+      "description": "Read-only GitHub personal access token (public repos scope). Strongly recommended — unauthenticated requests are rate-limited to 60/hr and the server will fail quickly without one. Create one at https://github.com/settings/tokens",
       "sensitive": true,
-      "required": false
+      "required": false,
+      "default": ""
     },
     "ruleset": {
       "type": "string",
