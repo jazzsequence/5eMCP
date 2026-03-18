@@ -2,7 +2,7 @@
   "manifest_version": "0.2",
   "name": "5emcp",
   "display_name": "5etools D&D 5e Reference",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Complete D&D 5e reference — spells, monsters, items, classes, backgrounds, feats, races, sourcebooks, adventures, and homebrew. Backed by live 5etools data. No API key required.",
   "long_description": "Provides every content type from 5e.tools: spells with full descriptions, monster stat blocks with lore, magic items, class progressions, subclasses, backgrounds, feats, races, conditions, vehicles, traps, deities, languages, variant rules, random tables, and full sourcebook/adventure prose text. All content is fetched live from the 5etools GitHub repositories — nothing is stored. Also searches TheGiddyLimit/homebrew community content via the include_homebrew flag.",
   "license": "MIT",
