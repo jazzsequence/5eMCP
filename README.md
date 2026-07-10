@@ -206,10 +206,19 @@ All calculators are purely local — no network calls, no API key needed.
 
 In addition to stdio (used by Claude Desktop/Code/Cursor above), the server supports the [MCP Streamable HTTP transport](https://modelcontextprotocol.io/), useful for running the server remotely (e.g. colocated with a self-hosted 5etools mirror) and connecting to it from clients that can't spawn a local process.
 
+Colocated with a self-hosted mirror (reads the mirror's `data/` directory straight off disk — fastest, no GitHub calls for core content):
+
 ```
-npm run build
-LOCAL_BASE_URL=https://5e.example.com MCP_HTTP_TOKEN=your-secret node dist/http.js
+LOCAL_DATA_DIR=/opt/5etools/data MCP_HTTP_TOKEN=your-secret npm start
 ```
+
+Or pointing at a mirror over HTTP (e.g. the MCP server runs elsewhere than the mirror):
+
+```
+LOCAL_BASE_URL=https://5e.example.com MCP_HTTP_TOKEN=your-secret npm start
+```
+
+`npm start` runs the TypeScript source directly via `tsx` — no separate build step needed. If you do want a compiled build (e.g. for `npm run build:mcpb`), note that `tsc` is memory-hungry; on RAM-constrained hosts it can OOM, in which case `npm start` is the way to go anyway.
 
 This starts a stateless HTTP server:
 
