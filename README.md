@@ -197,6 +197,25 @@ All calculators are purely local — no network calls, no API key needed.
 | `MANIFEST_TTL_SECONDS` | `3600` | How often to rebuild the manifest (seconds). |
 | `CACHE_DIR` | `~/.cache/5eMCP` | Disk cache location (local stdio mode). |
 | `REDIS_URL` | — | Redis connection URL (e.g. `redis://localhost:6379`). When set and reachable, Redis is used instead of disk cache. Falls back to disk on connection failure. |
+| `LOCAL_BASE_URL` | — | Base URL of a self-hosted 5etools static mirror (e.g. `https://5e.example.com`). When set, spell/monster/item/etc. content for the `2024` and `2014` ruleset repos is fetched from this mirror instead of `raw.githubusercontent.com` — faster, no GitHub rate limit for content fetches. Manifest indexing (file listing) still uses the GitHub Contents API, since a static mirror has no equivalent listing endpoint. Homebrew content is never redirected. |
+| `PORT` | `3000` | Port for the HTTP transport (`npm start` / `dist/http.js`). |
+| `MCP_HTTP_TOKEN` | — | Bearer token required on the HTTP transport's `/mcp` endpoint. If unset, the endpoint is unauthenticated — fine on a private network, not recommended for public exposure. |
+
+## HTTP Transport
+
+In addition to stdio (used by Claude Desktop/Code/Cursor above), the server supports the [MCP Streamable HTTP transport](https://modelcontextprotocol.io/), useful for running the server remotely (e.g. colocated with a self-hosted 5etools mirror) and connecting to it from clients that can't spawn a local process.
+
+```
+npm run build
+LOCAL_BASE_URL=https://5e.example.com MCP_HTTP_TOKEN=your-secret node dist/http.js
+```
+
+This starts a stateless HTTP server:
+
+- `POST /mcp` — MCP JSON-RPC endpoint (Streamable HTTP transport, one server instance per request)
+- `GET /health` — health check, returns `{"status":"ok","service":"5eMCP"}`
+
+If `MCP_HTTP_TOKEN` is set, requests to `/mcp` must include `Authorization: Bearer <token>`; `/health` is always open.
 
 ## Ruleset Support
 
