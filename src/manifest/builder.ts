@@ -1,7 +1,17 @@
 import { fetchContents, rawUrl } from "../github.js";
+import { buildLocalContent } from "./local-builder.js";
 import type { Manifest, ManifestFile } from "./schema.js";
 import type { Ruleset, GitHubContentsItem } from "../types.js";
 import { REPOS, HOMEBREW_REPO } from "../types.js";
+
+/** Filesystem path to a local 5etools data/ directory (e.g. "/opt/5etools/data").
+ *  When set, core ruleset content is indexed by scanning this directory instead
+ *  of the GitHub Contents API — avoids GitHub rate limits entirely. Homebrew is
+ *  unaffected (self-hosted mirrors don't bundle it) and still goes through GitHub. */
+function localDataDir(): string | undefined {
+  const value = process.env.LOCAL_DATA_DIR;
+  return value && value.trim() !== "" ? value : undefined;
+}
 
 function inferSource(filename: string): string | undefined {
   // e.g. "spells-phb.json" → "PHB", "bestiary-mm.json" → "MM"
@@ -54,8 +64,11 @@ async function buildDirectoryContent(
   });
 }
 
-export async function buildManifest(ruleset: Ruleset): Promise<Manifest> {
-  const { owner, repo, branch } = REPOS[ruleset];
+async function buildGitHubContent(
+  owner: string,
+  repo: string,
+  branch: string,
+): Promise<Record<string, ManifestFile[]>> {
   const content: Record<string, ManifestFile[]> = {};
 
   const dataItems = await fetchContents(owner, repo, "data");
@@ -110,7 +123,19 @@ export async function buildManifest(ruleset: Ruleset): Promise<Manifest> {
     content[contentType].push(file);
   }
 
-  // Build homebrew manifest
+  return content;
+}
+
+export async function buildManifest(ruleset: Ruleset): Promise<Manifest> {
+  const { owner, repo, branch } = REPOS[ruleset];
+  const dataDir = localDataDir();
+
+  const content = dataDir
+    ? await buildLocalContent(dataDir)
+    : await buildGitHubContent(owner, repo, branch);
+
+  // Build homebrew manifest. Always via GitHub — self-hosted 5etools mirrors
+  // don't bundle third-party homebrew content, so there's no local source for it.
   const homebrew: Record<string, ManifestFile[]> = {};
   try {
     await buildHomebrewManifest(homebrew);

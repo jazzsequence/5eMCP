@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import type { GitHubContentsItem } from "./types.js";
 
 const GITHUB_API = "https://api.github.com";
@@ -27,7 +29,8 @@ function githubHeaders(): HeadersInit {
  *  When set, raw content for the core ruleset repos is fetched from here instead
  *  of raw.githubusercontent.com — faster, no GitHub rate limit, no token needed
  *  for this part. Manifest indexing (directory listing) still goes through the
- *  GitHub Contents API, since a static mirror has no equivalent listing endpoint. */
+ *  GitHub Contents API, since a static mirror has no equivalent listing endpoint
+ *  (unless LOCAL_DATA_DIR is also set — see manifest/local-builder.ts). */
 function localBaseUrl(): string | undefined {
   const value = process.env.LOCAL_BASE_URL;
   if (!value || value.trim() === "") return undefined;
@@ -49,7 +52,16 @@ export async function fetchContents(
   return Array.isArray(data) ? (data as GitHubContentsItem[]) : [data as GitHubContentsItem];
 }
 
+/** Fetches and parses a JSON file, whether it lives on GitHub, a local HTTP
+ *  mirror, or (when LOCAL_DATA_DIR indexing produced a file:// URL) directly
+ *  on disk. */
 export async function fetchRaw(url: string): Promise<unknown> {
+  if (url.startsWith("file://")) {
+    const filePath = fileURLToPath(url);
+    const raw = await readFile(filePath, "utf8");
+    return JSON.parse(raw);
+  }
+
   const res = await fetch(url, {
     headers: { "User-Agent": "5eMCP/1.0.0" },
   });
