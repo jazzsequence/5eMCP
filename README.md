@@ -227,6 +227,16 @@ This starts a stateless HTTP server:
 
 If `MCP_HTTP_TOKEN` is set, requests to `/mcp` must include `Authorization: Bearer <token>`; `/health` is always open.
 
+### Connecting Claude Desktop / claude.ai to a Remote Instance
+
+Once the HTTP server is deployed and reachable, connect to it as a **Custom Connector** rather than editing `claude_desktop_config.json` — that file is for stdio servers that Claude spawns as a local process, which doesn't apply to a server running elsewhere:
+
+1. Claude Desktop (or claude.ai) → **Settings → Connectors → Add custom connector**
+2. Enter your server's URL, e.g. `https://5emcp.example.com/mcp`
+3. Click **Add**
+
+If `MCP_HTTP_TOKEN` is unset, that's all — the connector works immediately. Note that the Custom Connector UI's "Advanced settings" are built for OAuth (Client ID/Secret), not a raw static bearer token, so `MCP_HTTP_TOKEN` isn't directly pluggable there. If you need auth on a Custom Connector, put a reverse proxy in front (e.g. Cloudflare Access, Caddy with `basicauth`) rather than relying on `MCP_HTTP_TOKEN` alone.
+
 ## Ruleset Support
 
 All tools accept `ruleset: "2024" | "2014"`:
