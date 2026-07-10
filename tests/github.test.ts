@@ -58,3 +58,31 @@ describe("rawUrl", () => {
     );
   });
 });
+
+describe("fetchRaw with file:// URLs", () => {
+  it("reads and parses a local JSON file instead of making a network request", async () => {
+    const { mkdtemp, writeFile, rm } = await import("node:fs/promises");
+    const { tmpdir } = await import("node:os");
+    const path = await import("node:path");
+    const { pathToFileURL } = await import("node:url");
+    const { fetchRaw } = await import("../src/github.js");
+
+    const dir = await mkdtemp(path.join(tmpdir(), "5emcp-fetchraw-"));
+    const filePath = path.join(dir, "spell.json");
+    await writeFile(filePath, JSON.stringify({ name: "Fireball", level: 3 }));
+
+    try {
+      const data = await fetchRaw(pathToFileURL(filePath).href);
+      expect(data).toEqual({ name: "Fireball", level: 3 });
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("rejects a file:// URL that doesn't exist", async () => {
+    const { pathToFileURL } = await import("node:url");
+    const { fetchRaw } = await import("../src/github.js");
+
+    await expect(fetchRaw(pathToFileURL("/nonexistent/spell.json").href)).rejects.toThrow();
+  });
+});
