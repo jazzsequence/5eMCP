@@ -10,6 +10,8 @@ A complete D&D 5e reference and utility MCP server backed by live [5etools](http
 
 ### Claude Desktop — One-Click Install (recommended)
 
+**Prerequisite:** Node.js ≥ 22 must be your system's default `node`. Claude Desktop uses the macOS launch environment PATH, not your shell session — your terminal's active `nvm` version doesn't apply. If you use nvm, run `nvm alias default 22` (or `nvm install 22 && nvm alias default 22` if you don't have it) and fully quit and relaunch Claude Desktop. If you don't use nvm, install Node.js from [nodejs.org](https://nodejs.org).
+
 1. Download `5eMCP.mcpb` from the [latest release](https://github.com/jazzsequence/5eMCP/releases/latest)
 2. Open the file — Claude Desktop will prompt you to install it, **or** go to **Settings → Extensions → Install Extension** and select the file
 3. Enter your GitHub personal access token when prompted (required — create a free one at [github.com/settings/tokens](https://github.com/settings/tokens) with `public_repo` scope or read-only access to public repos)
@@ -22,7 +24,7 @@ Your token is stored securely in the OS keychain (macOS Keychain / Windows Crede
 
 ### Developers (Claude Code, Cursor, manual config)
 
-**Requirements:** Node.js ≥ 24, optional GitHub personal access token (read-only, public repos)
+**Requirements:** Node.js ≥ 22, optional GitHub personal access token (read-only, public repos)
 
 ```bash
 git clone https://github.com/jazzsequence/5eMCP.git
