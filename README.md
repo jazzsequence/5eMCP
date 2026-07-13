@@ -29,7 +29,10 @@ git clone https://github.com/jazzsequence/5eMCP.git
 cd 5eMCP
 npm install
 npm run build
+pwd   # copy this — you'll use it as your path in the config below
 ```
+
+In the configs below, replace `/path/to/5eMCP` with the output of `pwd` above (e.g. `/Users/you/Projects/5eMCP`).
 
 #### Claude Code
 
@@ -88,7 +91,7 @@ Add to `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
 }
 ```
 
-Replace `/path/to/5eMCP` with the absolute path to your clone. `DEFAULT_RULESET` can be `"2024"` (default) or `"2014"` for legacy rules. `GITHUB_TOKEN` is optional but strongly recommended — unauthenticated requests are rate-limited to 60/hr.
+`DEFAULT_RULESET` can be `"2024"` (default) or `"2014"` for legacy rules. `GITHUB_TOKEN` is optional but strongly recommended — unauthenticated requests are rate-limited to 60/hr.
 
 ## How It Works
 
