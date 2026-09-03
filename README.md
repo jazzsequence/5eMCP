@@ -202,6 +202,45 @@ All calculators are purely local — no network calls, no API key needed.
 | `MANIFEST_TTL_SECONDS` | `3600` | How often to rebuild the manifest (seconds). |
 | `CACHE_DIR` | `~/.cache/5eMCP` | Disk cache location (local stdio mode). |
 | `REDIS_URL` | — | Redis connection URL (e.g. `redis://localhost:6379`). When set and reachable, Redis is used instead of disk cache. Falls back to disk on connection failure. |
+| `LOCAL_BASE_URL` | — | Base URL of a self-hosted 5etools static mirror (e.g. `https://5e.example.com`). When set, spell/monster/item/etc. content for the `2024` and `2014` ruleset repos is fetched from this mirror instead of `raw.githubusercontent.com` — faster, no GitHub rate limit for content fetches. Ignored if `LOCAL_DATA_DIR` is also set. Manifest indexing (file listing) still uses the GitHub Contents API, since a static mirror has no equivalent listing endpoint. Homebrew content is never redirected. |
+| `LOCAL_DATA_DIR` | — | Filesystem path to a local 5etools `data/` directory (e.g. `/opt/5etools/data`) — typically used when the MCP server runs colocated with a self-hosted mirror. When set, **both** manifest indexing and content fetching read directly from disk, bypassing GitHub entirely for core ruleset content (no rate limit, no network round-trip at all). Homebrew still goes through the GitHub Contents API regardless, since self-hosted mirrors don't bundle it — that call degrades gracefully (logged, non-fatal) if it hits a rate limit. Assumes the directory matches the ruleset(s) you query; a single local mirror generally only reflects one ruleset. |
+| `PORT` | `3000` | Port for the HTTP transport (`npm start` / `dist/http.js`). |
+| `MCP_HTTP_TOKEN` | — | Bearer token required on the HTTP transport's `/mcp` endpoint. If unset, the endpoint is unauthenticated — fine on a private network, not recommended for public exposure. |
+
+## HTTP Transport
+
+In addition to stdio (used by Claude Desktop/Code/Cursor above), the server supports the [MCP Streamable HTTP transport](https://modelcontextprotocol.io/), useful for running the server remotely (e.g. colocated with a self-hosted 5etools mirror) and connecting to it from clients that can't spawn a local process.
+
+Colocated with a self-hosted mirror (reads the mirror's `data/` directory straight off disk — fastest, no GitHub calls for core content):
+
+```
+LOCAL_DATA_DIR=/opt/5etools/data MCP_HTTP_TOKEN=your-secret npm start
+```
+
+Or pointing at a mirror over HTTP (e.g. the MCP server runs elsewhere than the mirror):
+
+```
+LOCAL_BASE_URL=https://5e.example.com MCP_HTTP_TOKEN=your-secret npm start
+```
+
+`npm start` runs the TypeScript source directly via `tsx` — no separate build step needed. If you do want a compiled build (e.g. for `npm run build:mcpb`), note that `tsc` is memory-hungry; on RAM-constrained hosts it can OOM, in which case `npm start` is the way to go anyway.
+
+This starts a stateless HTTP server:
+
+- `POST /mcp` — MCP JSON-RPC endpoint (Streamable HTTP transport, one server instance per request)
+- `GET /health` — health check, returns `{"status":"ok","service":"5eMCP"}`
+
+If `MCP_HTTP_TOKEN` is set, requests to `/mcp` must include `Authorization: Bearer <token>`; `/health` is always open.
+
+### Connecting Claude Desktop / claude.ai to a Remote Instance
+
+Once the HTTP server is deployed and reachable, connect to it as a **Custom Connector** rather than editing `claude_desktop_config.json` — that file is for stdio servers that Claude spawns as a local process, which doesn't apply to a server running elsewhere:
+
+1. Claude Desktop (or claude.ai) → **Settings → Connectors → Add custom connector**
+2. Enter your server's URL, e.g. `https://5emcp.example.com/mcp`
+3. Click **Add**
+
+If `MCP_HTTP_TOKEN` is unset, that's all — the connector works immediately. Note that the Custom Connector UI's "Advanced settings" are built for OAuth (Client ID/Secret), not a raw static bearer token, so `MCP_HTTP_TOKEN` isn't directly pluggable there. If you need auth on a Custom Connector, put a reverse proxy in front (e.g. Cloudflare Access, Caddy with `basicauth`) rather than relying on `MCP_HTTP_TOKEN` alone.
 
 ## Ruleset Support
 
