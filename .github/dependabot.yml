@@ -6,6 +6,13 @@ updates:
       interval: "weekly"
       day: "monday"
     open-pull-requests-limit: 5
+    ignore:
+      # TypeScript 7 is the native/Go-based compiler rewrite and @typescript-eslint
+      # (both the parser and eslint-plugin) hard-refuses to run against it —
+      # see https://github.com/typescript-eslint/typescript-eslint/issues/10940.
+      # Stay on the 6.x line until that's resolved upstream.
+      - dependency-name: "typescript"
+        versions: [">=7.0.0"]
 
   - package-ecosystem: "github-actions"
     directory: "/"
