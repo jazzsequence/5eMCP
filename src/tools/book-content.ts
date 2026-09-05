@@ -1,8 +1,7 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { getBookContent } from "../search/book-content.js";
-
-const RulesetSchema = z.enum(["2024", "2014"]).default("2024");
+import { RulesetSchema, rulesetDescription } from "../types.js";
 
 export function registerBookContentTool(server: McpServer): void {
   server.tool(
@@ -28,7 +27,7 @@ export function registerBookContentTool(server: McpServer): void {
         "Named subsection within the matched section (case-insensitive substring match). " +
           "Requires section to be set. Returns rendered text of just this subsection.",
       ),
-      ruleset: RulesetSchema.describe("Which ruleset to use: '2024' (default) or '2014'."),
+      ruleset: RulesetSchema.describe(rulesetDescription("use")),
     },
     async ({ source, section, subsection, ruleset }) => {
       const result = await getBookContent(source, section, subsection, ruleset);

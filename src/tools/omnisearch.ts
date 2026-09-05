@@ -1,8 +1,8 @@
 import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { omnisearch } from "../search/omnisearch.js";
+import { RulesetSchema, rulesetDescription } from "../types.js";
 
-const RulesetSchema = z.enum(["2024", "2014"]).default("2024");
 const DEFAULT_PER_TYPE = 5;
 
 export function registerOmnisearchTool(server: McpServer): void {
@@ -17,7 +17,7 @@ export function registerOmnisearchTool(server: McpServer): void {
     ].join(" "),
     {
       query: z.string().describe("Name or partial name to search for across all content types"),
-      ruleset: RulesetSchema.describe("Which ruleset to search"),
+      ruleset: RulesetSchema.describe(rulesetDescription("search")),
       per_type_limit: z
         .number()
         .int()

@@ -2,8 +2,8 @@ import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { searchContentType } from "../search/index.js";
 import { getEntry } from "../search/get-entry.js";
+import { RulesetSchema, rulesetDescription } from "../types.js";
 
-const RulesetSchema = z.enum(["2024", "2014"]).default("2024");
 const DEFAULT_LIMIT = 20;
 
 /** Maps full spell school names to 5etools single-letter abbreviations. */
@@ -167,7 +167,7 @@ export function registerTypedTools(server: McpServer): void {
     // Search tool
     const searchSchema = {
       query: z.string().describe(`Name or partial name to search for`),
-      ruleset: RulesetSchema.describe("Which ruleset to search"),
+      ruleset: RulesetSchema.describe(rulesetDescription("search")),
       limit: z.number().int().min(1).max(100).default(DEFAULT_LIMIT).describe("Max results to return"),
       fields: z.array(z.string()).optional().describe(
         "Fields to include in each result (default: all fields). E.g. [\"name\",\"cr\",\"source\"]",
@@ -210,7 +210,7 @@ export function registerTypedTools(server: McpServer): void {
         {
           name: z.string().describe(`Exact name of the ${noun} (case-insensitive)`),
           source: z.string().optional().describe("Source abbreviation to disambiguate (e.g. PHB, XGE)"),
-          ruleset: RulesetSchema.describe("Which ruleset to search"),
+          ruleset: RulesetSchema.describe(rulesetDescription("search")),
         },
         async ({ name, source, ruleset }) => {
           const entry = await getEntry(folder, name, source, ruleset as "2024" | "2014");
@@ -238,7 +238,7 @@ export function registerTypedTools(server: McpServer): void {
       "When ruleset='2024', returns 2024 (XPHB) features; '2014' returns classic features.",
     {
       query: z.string().describe("Name or partial name of the feature to search for"),
-      ruleset: RulesetSchema.describe("Which ruleset to search"),
+      ruleset: RulesetSchema.describe(rulesetDescription("search")),
       limit: z.number().int().min(1).max(100).default(DEFAULT_LIMIT).describe("Max results to return"),
       class_name: z.string().optional().describe("Filter by class name (e.g. 'Wizard', 'Fighter')"),
       level: z.number().int().min(1).max(20).optional().describe("Filter by character level when the feature is gained"),
@@ -265,7 +265,7 @@ export function registerTypedTools(server: McpServer): void {
       "When ruleset='2024', returns 2024 (XPHB) features; '2014' returns classic features.",
     {
       query: z.string().describe("Name or partial name of the feature to search for"),
-      ruleset: RulesetSchema.describe("Which ruleset to search"),
+      ruleset: RulesetSchema.describe(rulesetDescription("search")),
       limit: z.number().int().min(1).max(100).default(DEFAULT_LIMIT).describe("Max results to return"),
       class_name: z.string().optional().describe("Filter by parent class name (e.g. 'Wizard')"),
       subclass_name: z.string().optional().describe("Filter by subclass short name (e.g. 'Abjurer', 'Champion')"),

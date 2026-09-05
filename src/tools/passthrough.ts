@@ -5,8 +5,7 @@ import { fetchRaw } from "../github.js";
 import { cacheGet, cacheSet } from "../cache/index.js";
 import { contentKey } from "../cache/keys.js";
 import { translate } from "../translation/index.js";
-
-const RulesetSchema = z.enum(["2024", "2014"]).default("2024");
+import { RulesetSchema, rulesetDescription } from "../types.js";
 
 export function registerPassthroughTools(server: McpServer): void {
   server.tool(
@@ -28,7 +27,7 @@ export function registerPassthroughTools(server: McpServer): void {
         .describe(
           "File to fetch (e.g. 'spells-phb.json'). Omit to list available files for this type.",
         ),
-      ruleset: RulesetSchema.describe("Which ruleset to query"),
+      ruleset: RulesetSchema.describe(rulesetDescription("query")),
       homebrew: z.boolean().default(false).describe("Search homebrew content instead of core"),
     },
     async ({ content_type, file_name, ruleset, homebrew }) => {

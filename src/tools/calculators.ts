@@ -3,8 +3,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { calculateCr, scaleCr } from "../calculators/cr.js";
 import { buildEncounter } from "../calculators/encounter.js";
 import { generateLoot } from "../calculators/loot.js";
-
-const RulesetSchema = z.enum(["2014", "2024"]).default("2014");
+import { RulesetSchema, rulesetDescription } from "../types.js";
 
 const CR_VALUES = [
   "0", "1/8", "1/4", "1/2",
@@ -121,7 +120,7 @@ export function registerCalculatorTools(server: McpServer): void {
             `Valid CR values: ${CR_VALUES.join(", ")}.`,
         ),
       ruleset: RulesetSchema.describe(
-        "Which ruleset to use: '2014' (classic, with XP multiplier) or '2024' (no multiplier). Defaults to '2014'.",
+        `${rulesetDescription("use")} '2014' uses the classic XP multiplier; '2024' does not.`,
       ),
     },
     async ({ partyLevels, monsterCrs, ruleset }) => {

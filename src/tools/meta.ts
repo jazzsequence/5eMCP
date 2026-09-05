@@ -1,16 +1,15 @@
-import { z } from "zod";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { getManifest } from "../manifest/refresh.js";
 import { hasTypedHandler } from "../translation/index.js";
-
-const RulesetSchema = z.enum(["2024", "2014"]).default("2024");
+import { RulesetSchema, rulesetDescription } from "../types.js";
 
 export function registerMetaTools(server: McpServer): void {
   server.tool(
     "manifest_status",
     "Returns the manifest build time, file counts by content type, and any unknown content types (those without typed handlers).",
     {
-      ruleset: RulesetSchema.describe("Which ruleset to query"),
+      ruleset: RulesetSchema.describe(rulesetDescription("query")),
     },
     async ({ ruleset }) => {
       const manifest = await getManifest(ruleset as "2024" | "2014");
@@ -58,7 +57,7 @@ export function registerMetaTools(server: McpServer): void {
     "list_sources",
     "List all available source abbreviations with their content types and files. Optionally filter by content type.",
     {
-      ruleset: RulesetSchema.describe("Which ruleset to query"),
+      ruleset: RulesetSchema.describe(rulesetDescription("query")),
       content_type: z
         .string()
         .optional()
