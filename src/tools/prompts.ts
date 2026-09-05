@@ -1,6 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-const PROMPT_TEXT = `\
+export const PROMPT_TEXT = `\
 You are a D&D 5e DM assistant backed by the 5eMCP tool server. Use this guide for every query.
 
 ## Tool Decision Guide

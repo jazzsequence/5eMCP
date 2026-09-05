@@ -61,6 +61,18 @@ describe("createServer", () => {
     expect(toolNames).toContain("loot_generate");
   });
 
+  it("declares session instructions so clients can auto-load tool guidance", () => {
+    // Claude Desktop doesn't expose MCP-registered prompts as an invokable command —
+    // the `instructions` field on InitializeResult is the mechanism clients are
+    // meant to fold into context automatically, with no user action required.
+    const server = createServer();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const instructions = (server.server as any)._instructions as string | undefined;
+    expect(instructions).toBeTruthy();
+    expect(instructions).toContain("omnisearch");
+    expect(instructions).toContain("help");
+  });
+
   it("has no duplicate tool names", () => {
     const server = createServer();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

@@ -198,6 +198,12 @@ All calculators are purely local — no network calls, no API key needed.
 | `encounter_build` | Evaluate encounter difficulty for a party vs a set of monsters. Supports both 2014 (easy/medium/hard/deadly, with monster-count XP multiplier) and 2024 (low/moderate/high, no multiplier) rulesets. Returns adjusted XP, difficulty label, and full threshold breakdown. |
 | `loot_generate` | Generate individual treasure loot for a monster by CR, using the DMG individual treasure tables. Returns all possible outcomes for the CR bracket with probability percentages and average coin amounts. |
 
+## Session Guidance
+
+The server declares an `instructions` string on the MCP `initialize` handshake — a condensed tool decision guide (which tool to reach for, ruleset/homebrew defaults, class feature lookups, calculators). Spec-compliant clients fold this into context automatically on connect, with no user action required. This is what actually reaches Claude Desktop, since Desktop doesn't expose MCP-registered prompts as an invokable command the way Claude Code does.
+
+The same content is also registered as an MCP prompt named `5eMCP`, for clients that support explicit prompt invocation — in Claude Code this shows up as `/mcp__<server-name>__5eMCP` (using whichever key you gave the server in your `mcpServers` config, e.g. `5etools` per the examples above). There's also a `help` tool with the same guidance, callable like any other tool from clients (including Claude Desktop) that don't support MCP prompts at all.
+
 ## Environment Variables
 
 | Variable | Default | Description |

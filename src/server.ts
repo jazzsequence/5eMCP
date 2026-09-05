@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import { registerPrompts } from "./tools/prompts.js";
+import { registerPrompts, PROMPT_TEXT } from "./tools/prompts.js";
 import { registerHelpTool } from "./tools/help.js";
 import { registerMetaTools } from "./tools/meta.js";
 import { registerPassthroughTools } from "./tools/passthrough.js";
@@ -9,10 +9,13 @@ import { registerBookContentTool } from "./tools/book-content.js";
 import { registerCalculatorTools } from "./tools/calculators.js";
 
 export function createServer(): McpServer {
-  const server = new McpServer({
-    name: "5eMCP",
-    version: "1.2.0",
-  });
+  const server = new McpServer(
+    {
+      name: "5eMCP",
+      version: "1.2.0",
+    },
+    { instructions: PROMPT_TEXT },
+  );
 
   registerPrompts(server);
   registerHelpTool(server);
