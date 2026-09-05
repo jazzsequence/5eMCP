@@ -115,6 +115,7 @@ The manifest is schema-agnostic and self-updating. When 5etools adds a new conte
 ### Meta Tools
 | Tool | Description |
 |---|---|
+| `help` | Full decision guide to every tool — call first when unsure which one to use. |
 | `manifest_status` | Build time, file counts by type, unknown types discovered. |
 | `list_sources` | All source abbreviations with content types. |
 | `fetch_content` | Fetch and translate any file in the manifest by content type + file name. Universal fallback for any content type. |
@@ -129,6 +130,8 @@ Selected tools support additional structured filter parameters:
 | `spell_search` | `level` (int 0–9), `school` (full name: evocation, necromancy, etc.) |
 | `monster_search` | `type` (beast, humanoid, undead…), `cr_max` (max CR inclusive: "1/4", "1/2", "5"…), `environment` (habitat substring: "underdark", "forest", "nine hells"…) |
 | `item_search` | `rarity` (common, uncommon, rare, very rare, legendary, artifact), `type` (weapon, armor, wondrous…) |
+| `classfeature_search` | `class_name` (e.g. "Wizard"), `level` (int 1–20) |
+| `subclassfeature_search` | `class_name` (e.g. "Wizard"), `subclass_name` (e.g. "Abjurer"), `level` (int 1–20) |
 
 | Tool | Content |
 |---|---|
@@ -156,6 +159,8 @@ Selected tools support additional structured filter parameters:
 | `adventure_search` | Published adventures |
 | `class_search` | Character classes (official + homebrew) |
 | `subclass_search` | Subclasses and archetypes |
+| `classfeature_search` | Class features (searchable by class and level) |
+| `subclassfeature_search` | Subclass features (searchable by class, subclass, and level) |
 
 ### Get Tools (`*_get`)
 Exact lookup by name with full fluff/description merged in. Accept `name`, optional `source`, and `ruleset`.
@@ -176,7 +181,7 @@ Exact lookup by name with full fluff/description merged in. Accept `name`, optio
 ### Sourcebook & Adventure Content
 | Tool | Description |
 |---|---|
-| `book_content_get` | Retrieve full prose from a sourcebook or adventure by source abbreviation (e.g. `SCC`, `EGW`, `SCC-CK`). Without `section`: returns a table of contents. With `section`: returns that section's text rendered as clean markdown. Supports deep nested section search (case-insensitive substring match). |
+| `book_content_get` | Retrieve full prose from a sourcebook or adventure by source abbreviation (e.g. `SCC`, `EGW`, `SCC-CK`). Without `section`: returns a table of contents. With `section` only: returns that section's subsection names, or its full text if it has no subsections. With `section` + `subsection`: returns that subsection's text rendered as clean markdown. Matching is case-insensitive substring throughout. |
 
 ### Omnisearch
 | Tool | Description |
@@ -200,7 +205,7 @@ All calculators are purely local — no network calls, no API key needed.
 | `GITHUB_TOKEN` | — | Read-only GitHub PAT. Strongly recommended. |
 | `DEFAULT_RULESET` | `"2024"` | Which ruleset to use (`"2024"` or `"2014"`). |
 | `MANIFEST_TTL_SECONDS` | `3600` | How often to rebuild the manifest (seconds). |
-| `CACHE_DIR` | `~/.cache/5eMCP` | Disk cache location (local stdio mode). |
+| `CACHE_DIR` | `~/.cache/5emcp` | Disk cache location (local stdio mode). |
 | `REDIS_URL` | — | Redis connection URL (e.g. `redis://localhost:6379`). When set and reachable, Redis is used instead of disk cache. Falls back to disk on connection failure. |
 | `LOCAL_BASE_URL` | — | Base URL of a self-hosted 5etools static mirror (e.g. `https://5e.example.com`). When set, spell/monster/item/etc. content for the `2024` and `2014` ruleset repos is fetched from this mirror instead of `raw.githubusercontent.com` — faster, no GitHub rate limit for content fetches. Ignored if `LOCAL_DATA_DIR` is also set. Manifest indexing (file listing) still uses the GitHub Contents API, since a static mirror has no equivalent listing endpoint. Homebrew content is never redirected. |
 | `LOCAL_DATA_DIR` | — | Filesystem path to a local 5etools `data/` directory (e.g. `/opt/5etools/data`) — typically used when the MCP server runs colocated with a self-hosted mirror. When set, **both** manifest indexing and content fetching read directly from disk, bypassing GitHub entirely for core ruleset content (no rate limit, no network round-trip at all). Homebrew still goes through the GitHub Contents API regardless, since self-hosted mirrors don't bundle it — that call degrades gracefully (logged, non-fatal) if it hits a rate limit. Assumes the directory matches the ruleset(s) you query; a single local mirror generally only reflects one ruleset. |
@@ -244,10 +249,12 @@ If `MCP_HTTP_TOKEN` is unset, that's all — the connector works immediately. No
 
 ## Ruleset Support
 
-All tools accept `ruleset: "2024" | "2014"`:
+Most tools accept `ruleset: "2024" | "2014"`:
 
 - `"2024"` → `5etools-mirror-3/5etools-src` (current rules)
 - `"2014"` → `5etools-mirror-3/5etools-2014-src` (legacy rules)
+
+Exceptions: `cr_calculate`, `cr_scale`, and `loot_generate` are ruleset-agnostic (the DMG reference tables they use don't differ by edition) — of the DM calculators, only `encounter_build` takes a `ruleset` param. `help` takes no parameters at all.
 
 ## Development
 
