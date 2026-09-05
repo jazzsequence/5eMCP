@@ -11,7 +11,7 @@ import { registerCalculatorTools } from "./tools/calculators.js";
 export function createServer(): McpServer {
   const server = new McpServer({
     name: "5eMCP",
-    version: "1.1.0",
+    version: "1.2.0",
   });
 
   registerPrompts(server);
