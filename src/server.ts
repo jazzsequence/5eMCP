@@ -12,7 +12,7 @@ export function createServer(): McpServer {
   const server = new McpServer(
     {
       name: "5eMCP",
-      version: "1.2.0",
+      version: "1.2.1",
     },
     { instructions: PROMPT_TEXT },
   );
