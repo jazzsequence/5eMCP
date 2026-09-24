@@ -1,6 +1,6 @@
 import { getManifest } from "../manifest/refresh.js";
 import { fetchRaw } from "../github.js";
-import { CONTENT_KEY_MAP, FLUFF_KEY_MAP, getManifestFolder } from "../translation/handlers/types.js";
+import { FLUFF_KEY_MAP, getContentKeys, getManifestFolder } from "../translation/handlers/types.js";
 import { stripInternalFields } from "../translation/strip.js";
 import { resolveTagsDeep } from "../translation/tags.js";
 import { mergeFluffEntries } from "../translation/fluff.js";
@@ -45,10 +45,10 @@ export async function getEntry(
 ): Promise<ContentEntry | null> {
   const manifest = await getManifest(ruleset);
 
-  const contentKey = CONTENT_KEY_MAP[contentTypeFolder];
-  if (!contentKey) return null;
+  const contentKeys = getContentKeys(contentTypeFolder);
+  if (contentKeys.length === 0) return null;
 
-  const fluffKey = FLUFF_KEY_MAP[contentKey];
+  const fluffKey = FLUFF_KEY_MAP[contentKeys[0]];
   const lowerName = name.toLowerCase();
   const lowerSource = source?.toLowerCase();
 
@@ -57,7 +57,7 @@ export async function getEntry(
   const searchFiles = async (files: ManifestFile[], sourceAuthorOverride?: string): Promise<ContentEntry | null> => {
     for (const file of files) {
       const data = await fetchRaw(file.url) as Record<string, unknown>;
-      const entries = (data[contentKey] ?? []) as ContentEntry[];
+      const entries = contentKeys.flatMap((key) => (data[key] ?? []) as ContentEntry[]);
 
       const matchPredicate = (e: ContentEntry): boolean => {
         const eName = typeof e.name === "string" ? e.name.toLowerCase() : "";

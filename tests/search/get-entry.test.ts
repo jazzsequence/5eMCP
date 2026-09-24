@@ -95,6 +95,28 @@ describe("getEntry", () => {
     expect(result).toBeNull();
   });
 
+  // Regression: conditionsdiseases.json stores condition/disease/status as separate
+  // arrays. getEntry must check all of them, not just the first-listed "condition" key.
+  it("finds an entry under a secondary content key (e.g. a disease, not just conditions)", async () => {
+    const manifest = {
+      ...FAKE_MANIFEST,
+      content: {
+        conditionsdiseases: [
+          { name: "conditionsdiseases.json", path: "", url: "https://raw.example.com/conditionsdiseases.json", sha: "cd1" },
+        ],
+      },
+    };
+    mockGetManifest.mockResolvedValue(manifest as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      condition: [{ name: "Blinded", source: "XPHB" }],
+      disease: [{ name: "Sight Rot", source: "DMG" }],
+      status: [{ name: "Bloodied", source: "XPHB" }],
+    });
+    const result = await getEntry("conditionsdiseases", "Sight Rot", undefined, "2024");
+    expect(result).not.toBeNull();
+    expect((result as Record<string, unknown>).name).toBe("Sight Rot");
+  });
+
   it("strips internal fields from the result", async () => {
     mockFetchRaw
       .mockResolvedValueOnce({ spell: [{ name: "Fireball", source: "PHB", _internal: "hidden" }] })

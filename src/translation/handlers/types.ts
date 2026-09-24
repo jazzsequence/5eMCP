@@ -1,15 +1,17 @@
 /**
- * Maps 5etools folder names (manifest content keys) to the JSON array key
- * found inside the data files for that folder.
+ * Maps 5etools folder names (manifest content keys) to the JSON array key(s)
+ * found inside the data files for that folder. Most files hold a single array;
+ * a few (conditionsdiseases, trapshazards) hold multiple sibling arrays that
+ * all need to be searched.
  */
-export const CONTENT_KEY_MAP: Record<string, string> = {
+export const CONTENT_KEY_MAP: Record<string, string | string[]> = {
   spells: "spell",
   bestiary: "monster",
   items: "item",
-  conditionsdiseases: "condition",
+  conditionsdiseases: ["condition", "disease", "status"],
   vehicles: "vehicle",
   objects: "object",
-  trapshazards: "trap",
+  trapshazards: ["trap", "hazard"],
   psionics: "psionic",
   decks: "deck",
   rewards: "reward",
@@ -58,9 +60,21 @@ export const FLUFF_KEY_MAP: Record<string, string> = {
   background: "backgroundFluff",
 };
 
-/** Returns the JSON array key for a given 5etools folder name, or undefined. */
+/**
+ * Returns the primary JSON array key for a given 5etools folder name, or undefined.
+ * For folders with multiple sibling arrays, returns the first (primary) one —
+ * use getContentKeys to get all of them.
+ */
 export function getContentKey(folder: string): string | undefined {
-  return CONTENT_KEY_MAP[folder];
+  const value = CONTENT_KEY_MAP[folder];
+  return Array.isArray(value) ? value[0] : value;
+}
+
+/** Returns all JSON array keys for a given 5etools folder name (empty array if unknown). */
+export function getContentKeys(folder: string): string[] {
+  const value = CONTENT_KEY_MAP[folder];
+  if (value === undefined) return [];
+  return Array.isArray(value) ? value : [value];
 }
 
 /** Returns the fluff JSON array key for a given content key, or undefined. */

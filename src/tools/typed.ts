@@ -109,7 +109,7 @@ const CONTENT_TOOLS: ContentToolConfig[] = [
       },
     },
   },
-  { noun: "condition", folder: "conditionsdiseases", description: "D&D 5e condition or disease" },
+  { noun: "condition", folder: "conditionsdiseases", description: "D&D 5e condition, disease, or status effect" },
   { noun: "vehicle", folder: "vehicles", description: "D&D 5e vehicle or vessel" },
   { noun: "object", folder: "objects", description: "D&D 5e object" },
   { noun: "trap", folder: "trapshazards", description: "D&D 5e trap or hazard" },

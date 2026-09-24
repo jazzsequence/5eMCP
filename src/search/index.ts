@@ -1,6 +1,6 @@
 import { getManifest } from "../manifest/refresh.js";
 import { fetchRaw } from "../github.js";
-import { CONTENT_KEY_MAP, getManifestFolder } from "../translation/handlers/types.js";
+import { getContentKeys, getManifestFolder } from "../translation/handlers/types.js";
 import { stripInternalFields } from "../translation/strip.js";
 import { resolveTagsDeep } from "../translation/tags.js";
 import type { Ruleset } from "../types.js";
@@ -105,7 +105,7 @@ function entryMatchesQuery(entry: Record<string, unknown>, lowerQuery: string): 
 /** Searches a list of manifest files and appends matching entries to results up to limit. */
 async function searchFiles(
   files: { url: string; name?: string }[],
-  contentKey: string,
+  contentKeys: string[],
   lowerQuery: string,
   filters: Record<string, unknown>,
   results: Record<string, unknown>[],
@@ -118,15 +118,19 @@ async function searchFiles(
 
     const data = (await fetchRaw(file.url)) as Record<string, unknown> | undefined;
     if (!data) continue;
-    const entries = data[contentKey];
-    if (!Array.isArray(entries)) continue;
 
-    for (const entry of entries as Record<string, unknown>[]) {
+    for (const contentKey of contentKeys) {
       if (results.length >= limit) break;
-      const augmented: Record<string, unknown> = sourceAuthor ? { ...entry, sourceAuthor } : entry;
-      if ((!lowerQuery || entryMatchesQuery(augmented, lowerQuery)) && entryMatchesFilters(augmented, filters)) {
-        const translated = resolveTagsDeep(stripInternalFields(augmented)) as Record<string, unknown>;
-        results.push(translated);
+      const entries = data[contentKey];
+      if (!Array.isArray(entries)) continue;
+
+      for (const entry of entries as Record<string, unknown>[]) {
+        if (results.length >= limit) break;
+        const augmented: Record<string, unknown> = sourceAuthor ? { ...entry, sourceAuthor } : entry;
+        if ((!lowerQuery || entryMatchesQuery(augmented, lowerQuery)) && entryMatchesFilters(augmented, filters)) {
+          const translated = resolveTagsDeep(stripInternalFields(augmented)) as Record<string, unknown>;
+          results.push(translated);
+        }
       }
     }
   }
@@ -148,8 +152,8 @@ export async function searchContentType(
 ): Promise<Record<string, unknown>[]> {
   const manifest = await getManifest(ruleset);
 
-  const contentKey = CONTENT_KEY_MAP[contentTypeFolder];
-  if (!contentKey) return [];
+  const contentKeys = getContentKeys(contentTypeFolder);
+  if (contentKeys.length === 0) return [];
 
   const manifestFolder = getManifestFolder(contentTypeFolder);
   const files = manifest.content[manifestFolder] ?? [];
@@ -157,12 +161,12 @@ export async function searchContentType(
   const lowerQuery = query.toLowerCase();
   const results: Record<string, unknown>[] = [];
 
-  await searchFiles(files, contentKey, lowerQuery, filters, results, limit);
+  await searchFiles(files, contentKeys, lowerQuery, filters, results, limit);
 
   if (include_homebrew && results.length < limit) {
     const homebrewFiles = manifest.homebrew[manifestFolder];
     if (homebrewFiles && homebrewFiles.length > 0) {
-      await searchFiles(homebrewFiles, contentKey, lowerQuery, filters, results, limit);
+      await searchFiles(homebrewFiles, contentKeys, lowerQuery, filters, results, limit);
     }
   }
 

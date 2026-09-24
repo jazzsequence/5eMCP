@@ -9,7 +9,8 @@ type Handler = (raw: unknown, fluff?: unknown) => unknown;
 const handlers: Record<string, Handler> = {};
 
 for (const [folder, contentKey] of Object.entries(CONTENT_KEY_MAP)) {
-  const fluffKey = FLUFF_KEY_MAP[contentKey];
+  const primaryKey = Array.isArray(contentKey) ? contentKey[0] : contentKey;
+  const fluffKey = FLUFF_KEY_MAP[primaryKey];
   handlers[folder] = createTypedHandler(contentKey, fluffKey);
 }
 

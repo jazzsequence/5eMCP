@@ -536,4 +536,63 @@ describe("searchContentType", () => {
     const results = await searchContentType("optionalfeatures", "Pact of the Blade", "2024");
     expect(results.map((r) => r.name)).toContain("Pact of the Blade");
   });
+
+  // Regression: conditionsdiseases.json stores THREE arrays (condition, disease, status)
+  // but only "condition" was wired up, making disease/status entries unsearchable
+  // despite condition_search's description promising "condition or disease".
+  it("finds diseases and statuses via condition_search's underlying folder, not just conditions", async () => {
+    const manifest = {
+      ...FAKE_MANIFEST,
+      content: {
+        ...FAKE_MANIFEST.content,
+        conditionsdiseases: [
+          {
+            name: "conditionsdiseases.json",
+            path: "conditionsdiseases.json",
+            url: "https://raw.example.com/conditionsdiseases.json",
+            sha: "cd1",
+          },
+        ],
+      },
+    };
+    mockGetManifest.mockResolvedValue(manifest as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      condition: [{ name: "Blinded", source: "XPHB" }],
+      disease: [{ name: "Sight Rot", source: "DMG" }],
+      status: [{ name: "Bloodied", source: "XPHB" }],
+    });
+    const results = await searchContentType("conditionsdiseases", "", "2024", 20);
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Blinded");
+    expect(names).toContain("Sight Rot");
+    expect(names).toContain("Bloodied");
+  });
+
+  // Regression: trapshazards.json stores both "trap" and "hazard" arrays, but only
+  // "trap" was wired up, despite trap_search's description promising "trap or hazard".
+  it("finds hazards via trap_search's underlying folder, not just traps", async () => {
+    const manifest = {
+      ...FAKE_MANIFEST,
+      content: {
+        ...FAKE_MANIFEST.content,
+        trapshazards: [
+          {
+            name: "trapshazards.json",
+            path: "trapshazards.json",
+            url: "https://raw.example.com/trapshazards.json",
+            sha: "th1",
+          },
+        ],
+      },
+    };
+    mockGetManifest.mockResolvedValue(manifest as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      trap: [{ name: "Pit Trap", source: "DMG" }],
+      hazard: [{ name: "Falling Rubble", source: "DMG" }],
+    });
+    const results = await searchContentType("trapshazards", "", "2024", 20);
+    const names = results.map((r) => r.name);
+    expect(names).toContain("Pit Trap");
+    expect(names).toContain("Falling Rubble");
+  });
 });

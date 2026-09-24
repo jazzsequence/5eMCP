@@ -4,6 +4,7 @@ import {
   FLUFF_KEY_MAP,
   MANIFEST_FOLDER_MAP,
   getContentKey,
+  getContentKeys,
   getFluffKey,
   getManifestFolder,
 } from "../../../src/translation/handlers/types.js";
@@ -21,8 +22,8 @@ describe("CONTENT_KEY_MAP", () => {
     expect(CONTENT_KEY_MAP["items"]).toBe("item");
   });
 
-  it("maps conditionsdiseases to condition", () => {
-    expect(CONTENT_KEY_MAP["conditionsdiseases"]).toBe("condition");
+  it("maps conditionsdiseases to condition, disease, and status (the file has all three arrays)", () => {
+    expect(CONTENT_KEY_MAP["conditionsdiseases"]).toEqual(["condition", "disease", "status"]);
   });
 
   it("maps vehicles to vehicle", () => {
@@ -33,8 +34,8 @@ describe("CONTENT_KEY_MAP", () => {
     expect(CONTENT_KEY_MAP["objects"]).toBe("object");
   });
 
-  it("maps trapshazards to trap", () => {
-    expect(CONTENT_KEY_MAP["trapshazards"]).toBe("trap");
+  it("maps trapshazards to trap and hazard (the file has both arrays)", () => {
+    expect(CONTENT_KEY_MAP["trapshazards"]).toEqual(["trap", "hazard"]);
   });
 
   it("maps psionics to psionic", () => {
@@ -185,6 +186,26 @@ describe("getContentKey", () => {
 
   it("returns undefined for unknown folder", () => {
     expect(getContentKey("unknown")).toBeUndefined();
+  });
+
+  it("returns the primary key for a folder with multiple JSON array keys", () => {
+    expect(getContentKey("conditionsdiseases")).toBe("condition");
+    expect(getContentKey("trapshazards")).toBe("trap");
+  });
+});
+
+describe("getContentKeys", () => {
+  it("returns a single-element array for a folder with one JSON array key", () => {
+    expect(getContentKeys("spells")).toEqual(["spell"]);
+  });
+
+  it("returns all JSON array keys for a folder with multiple arrays", () => {
+    expect(getContentKeys("conditionsdiseases")).toEqual(["condition", "disease", "status"]);
+    expect(getContentKeys("trapshazards")).toEqual(["trap", "hazard"]);
+  });
+
+  it("returns an empty array for an unknown folder", () => {
+    expect(getContentKeys("unknown")).toEqual([]);
   });
 });
 

@@ -94,6 +94,17 @@ describe("createTypedHandler", () => {
     expect(result).toHaveLength(0);
   });
 
+  it("merges entries from multiple content keys when given an array (e.g. condition + disease)", () => {
+    const handler = createTypedHandler(["condition", "disease", "status"]);
+    const raw = {
+      condition: [{ name: "Blinded", source: "XPHB" }],
+      disease: [{ name: "Sight Rot", source: "DMG" }],
+      status: [{ name: "Bloodied", source: "XPHB" }],
+    };
+    const result = handler(raw);
+    expect(result.map((r) => r.name)).toEqual(["Blinded", "Sight Rot", "Bloodied"]);
+  });
+
   it("handles multiple entries", () => {
     const handler = createTypedHandler("monster");
     const raw = {

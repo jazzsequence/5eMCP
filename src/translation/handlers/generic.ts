@@ -7,13 +7,15 @@ type ContentEntry = Record<string, unknown>;
 /**
  * Factory that creates a typed handler for a specific content type.
  *
- * @param contentKey  - JSON array key inside the data file (e.g. "spell")
+ * @param contentKeys - JSON array key(s) inside the data file (e.g. "spell", or
+ *                      ["condition", "disease", "status"] for files with sibling arrays)
  * @param fluffKey    - JSON array key inside the fluff file (e.g. "spellFluff"); omit if no fluff
  */
-export function createTypedHandler(contentKey: string, fluffKey?: string) {
+export function createTypedHandler(contentKeys: string | string[], fluffKey?: string) {
+  const keys = Array.isArray(contentKeys) ? contentKeys : [contentKeys];
   return function handler(raw: unknown, fluff?: unknown): ContentEntry[] {
     const rawObj = raw as Record<string, unknown>;
-    const entries = (rawObj[contentKey] ?? []) as ContentEntry[];
+    const entries = keys.flatMap((key) => (rawObj[key] ?? []) as ContentEntry[]);
 
     const stripped = entries.map((e) => stripInternalFields(e) as ContentEntry);
 
