@@ -507,4 +507,33 @@ describe("searchContentType", () => {
     const results = await searchContentType("items", "vestige", "2024");
     expect(results).toHaveLength(0);
   });
+
+  // Regression: optionalfeatures.json stores its array under the key "optionalfeature"
+  // (singular), not "optfeature". A mismatched CONTENT_KEY_MAP entry silently returned
+  // zero results for every optfeature_search query, including Pact of the Blade.
+  it("finds optional features (e.g. Pact of the Blade) in real 5etools file shape", async () => {
+    const manifest = {
+      ...FAKE_MANIFEST,
+      content: {
+        ...FAKE_MANIFEST.content,
+        optionalfeatures: [
+          {
+            name: "optionalfeatures.json",
+            path: "optionalfeatures.json",
+            url: "https://raw.example.com/optionalfeatures.json",
+            sha: "opt1",
+          },
+        ],
+      },
+    };
+    mockGetManifest.mockResolvedValue(manifest as never);
+    mockFetchRaw.mockResolvedValueOnce({
+      optionalfeature: [
+        { name: "Pact of the Blade", source: "XPHB", featureType: ["PB"] },
+        { name: "Agonizing Blast", source: "XPHB", featureType: ["EI"] },
+      ],
+    });
+    const results = await searchContentType("optionalfeatures", "Pact of the Blade", "2024");
+    expect(results.map((r) => r.name)).toContain("Pact of the Blade");
+  });
 });

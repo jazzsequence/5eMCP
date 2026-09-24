@@ -49,8 +49,8 @@ describe("CONTENT_KEY_MAP", () => {
     expect(CONTENT_KEY_MAP["rewards"]).toBe("reward");
   });
 
-  it("maps optionalfeatures to optfeature", () => {
-    expect(CONTENT_KEY_MAP["optionalfeatures"]).toBe("optfeature");
+  it("maps optionalfeatures to optionalfeature (the actual 5etools JSON array key)", () => {
+    expect(CONTENT_KEY_MAP["optionalfeatures"]).toBe("optionalfeature");
   });
 
   it("maps tables to table", () => {

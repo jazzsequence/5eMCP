@@ -13,7 +13,7 @@ export const CONTENT_KEY_MAP: Record<string, string> = {
   psionics: "psionic",
   decks: "deck",
   rewards: "reward",
-  optionalfeatures: "optfeature",
+  optionalfeatures: "optionalfeature",
   tables: "table",
   variantrules: "variantrule",
   races: "race",
